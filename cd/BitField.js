@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * Data structure that makes it easy to interact with a bitfield.
@@ -121,7 +121,9 @@ class BitField {
    * @returns {string[]}
    */
   toArray(...hasParams) {
-    return Object.keys(this.constructor.FLAGS).filter((bit) => this.has(bit, ...hasParams));
+    return Object.keys(this.constructor.FLAGS).filter((bit) =>
+      this.has(bit, ...hasParams)
+    );
   }
 
   toJSON() {
@@ -132,7 +134,7 @@ class BitField {
     return this.bitfield;
   }
 
-  * [Symbol.iterator]() {
+  *[Symbol.iterator]() {
     yield* this.toArray();
   }
 
@@ -151,7 +153,7 @@ class BitField {
    * @returns {number}
    */
   static resolve(bit = 0) {
-    if (typeof bit === 'number' && bit >= 0) {
+    if (typeof bit === "number" && bit >= 0) {
       return bit;
     }
     if (bit instanceof BitField) {
@@ -160,10 +162,10 @@ class BitField {
     if (Array.isArray(bit)) {
       return bit.map((p) => this.resolve(p)).reduce((prev, p) => prev | p, 0);
     }
-    if (typeof bit === 'string' && typeof this.FLAGS[bit] !== 'undefined') {
+    if (typeof bit === "string" && typeof this.FLAGS[bit] !== "undefined") {
       return this.FLAGS[bit];
     }
-    const error = new Error('BITFIELD_INVALID');
+    const error = new Error("BITFIELD_INVALID");
     error.bit = bit;
     throw error;
   }

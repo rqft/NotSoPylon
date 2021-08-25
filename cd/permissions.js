@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const BitField = require('./BitField');
+const BitField = require("./BitField");
 
 /**
  * Data structure that makes it easy to interact with a permission bitfield. All {@link GuildMember}s have a set of
@@ -32,7 +32,10 @@ class Permissions extends BitField {
    * @returns {boolean}
    */
   any(permission, checkAdmin = true) {
-    return (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) || super.any(permission);
+    return (
+      (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) ||
+      super.any(permission)
+    );
   }
 
   /**
@@ -42,7 +45,10 @@ class Permissions extends BitField {
    * @returns {boolean}
    */
   has(permission, checkAdmin = true) {
-    return (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) || super.has(permission);
+    return (
+      (checkAdmin && super.has(this.constructor.FLAGS.ADMINISTRATOR)) ||
+      super.has(permission)
+    );
   }
 }
 
@@ -120,7 +126,10 @@ Permissions.FLAGS = {
  * Bitfield representing every permission combined
  * @type {number}
  */
-Permissions.ALL = Object.values(Permissions.FLAGS).reduce((all, p) => all | p, 0);
+Permissions.ALL = Object.values(Permissions.FLAGS).reduce(
+  (all, p) => all | p,
+  0
+);
 
 /**
  * Bitfield representing the default permissions for users
