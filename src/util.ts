@@ -42,3 +42,55 @@ export const PresenceStatusTexts = {
   idle: "Idle",
   offline: "Offline",
 };
+export function formatEmoji(
+  emoji: discord.Emoji | discord.Presence.IActivityEmoji
+) {
+  return emoji.id
+    ? `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`
+    : emoji.name;
+}
+export function emojiToUrl(
+  emoji: discord.Emoji | discord.Presence.IActivityEmoji,
+  format?: discord.ImageType,
+  size?: number
+) {
+  if (!emoji.id) {
+    throw new Error("Cannot get a URL of a standard Emoji.");
+  }
+  if (!format) {
+    if (emoji.animated) format = discord.ImageType.GIF;
+    else format = discord.ImageType.PNG;
+  }
+  const valid = [discord.ImageType.PNG, discord.ImageType.GIF];
+  if (!valid.includes(format)) {
+    throw new Error(
+      `Invalid format: '${format}', valid: ${JSON.stringify(valid)}`
+    );
+  }
+  return `https://cdn.discordapp.com/emojis/${emoji.id}.${format}${
+    size ? `?size=${size}` : ""
+  }`;
+}
+export function activityToTypeText(activity: discord.Presence.IActivity) {
+  switch (activity.type) {
+    case discord.Presence.ActivityType.GAME:
+      return "Playing";
+    case discord.Presence.ActivityType.STREAMING:
+      return "Streaming";
+    case discord.Presence.ActivityType.LISTENING:
+      return "Listening to";
+    case discord.Presence.ActivityType.WATCHING:
+      return "Watching";
+    case discord.Presence.ActivityType.CUSTOM:
+      return "";
+  }
+  return "Unknown";
+}
+export enum ActivityPlatformTypes {
+  ANDROID = "android",
+  DESKTOP = "desktop",
+  EMBEDDED = "embedded",
+  IOS = "ios",
+  SAMSUNG = "samsung",
+  XBOX = "xbox",
+}
