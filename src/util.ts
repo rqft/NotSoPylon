@@ -94,3 +94,70 @@ export enum ActivityPlatformTypes {
   SAMSUNG = "samsung",
   XBOX = "xbox",
 }
+export interface FormatTimeOptions {
+  day?: boolean;
+  ms?: boolean;
+}
+export function formatTime(
+  ms: number,
+  options: FormatTimeOptions = {}
+): string {
+  const showDays = options.day || options.day === undefined;
+  const showMs = !!options.ms;
+
+  let seconds = Math.floor(ms / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+  let days = Math.floor(hours / 24);
+  let milliseconds = ms % 1000;
+
+  seconds %= 60;
+  minutes %= 60;
+  hours %= 24;
+
+  const daysStr = days ? `${days}d` : "";
+  const hoursStr = `0${hours}`.slice(-2);
+  const minutesStr = `0${minutes}`.slice(-2);
+  const secondsStr = `0${seconds}`.slice(-2);
+  const millisecondsStr = `00${milliseconds}`.slice(-3);
+
+  let time = `${minutesStr}:${secondsStr}`;
+  if (hours) {
+    time = `${hoursStr}:${time}`;
+  }
+  if (showMs) {
+    time = `${time}.${millisecondsStr}`;
+  }
+  if (showDays && days) {
+    time = `${daysStr} ${time}`;
+  }
+  return time;
+}
+export function getElapsedTime(
+  timestamps: discord.Presence.IActivityTimestamps
+): number {
+  let elapsed: number;
+  if (timestamps.start) {
+    elapsed = Math.max(Date.now() - +timestamps.start, 0);
+  } else {
+    elapsed = Date.now();
+  }
+
+  const total = getTotalTime(timestamps);
+  if (total) {
+    return Math.min(elapsed, total);
+  }
+  return elapsed;
+}
+
+export function getTotalTime(
+  timestamps: discord.Presence.IActivityTimestamps
+): number {
+  if (timestamps.end) {
+    if (timestamps.start) {
+      return +timestamps.end - +timestamps.start;
+    }
+    return +timestamps.end;
+  }
+  return 0;
+}

@@ -7,6 +7,9 @@ import {
   createUserEmbed,
   emojiToUrl,
   formatEmoji,
+  formatTime,
+  getElapsedTime,
+  getTotalTime,
   PresenceStatusColors,
   PresenceStatusTexts,
 } from "../util";
@@ -123,9 +126,73 @@ commands.on(
             // description.push("**On Xbox**");
             // }
             let name = "Actvity";
+            embed.addField({
+              name,
+              value: description.join("\n"),
+              inline: true,
+            });
           }
+
+          // fields
+          const thumbnail = activity.assets.largeImage;
+          if (thumbnail) {
+            embed.setThumbnail({ url: thumbnail });
+          }
+
+          const assets = activity.assets;
+          if (assets && assets.smallText) {
+            embed.setFooter({
+              text: assets.smallText,
+              iconUrl: assets.smallImage || undefined,
+            });
+          }
+
+          const timestamps = activity.timestamps;
+          if (timestamps) {
+            const elapsed = formatTime(Math.max(getElapsedTime(timestamps), 0));
+
+            const total = formatTime(getTotalTime(timestamps));
+
+            const description = timestamps.end
+              ? `${elapsed}/${total}`
+              : `${elapsed}`;
+            embed.addField({ name: "Time", value: description, inline: true });
+          }
+          if (activity.party) {
+            const description = [];
+            if (activity.party.currentSize) {
+              description.push(
+                `${activity.party.currentSize}/${activity.party.maxSize} members`
+              );
+            }
+            if (description.length) {
+              embed.addField({ name: "Party", value: description.join("\n") });
+            }
+          }
+          if (activity.type === discord.Presence.ActivityType.LISTENING &&
+              !!(
+                activity.applicationId &&
+                activity.applicationId.startsWith("spotify:")
+              ) &&
+              !!activity.party.id.startsWith("spotify:")) {
+              const description = [];
+              if (activity.details) {
+                description.push(`[**${activity.details}**](https://open.spotify.com/track/${activity.secrets.join})`);
+              } else {
+                description.push(<string> (`https://open.spotify.com/track/${activity.secrets.join}`));
+              }
+              embed.addField({name: 'Spotify Track', value: description.join('\n'), inline: true});
+            }
+
+            if (activity.createdAt) {
+              embed.setFooter({ text: 'Started' });
+              embed.setTimestamp(activity.createdAt.toISOString());
+            }
+          }
+        } else {
+          embed.addField('Activity', PresenceStatusTexts['offline']);
         }
       }
     }
-  }
+  
 );
