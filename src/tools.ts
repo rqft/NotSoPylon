@@ -7,3 +7,29 @@ export function toTitleCase(value: string): string {
     })
     .join(" ");
 }
+
+const replies = new Map<string, discord.Message>();
+export async function editOrReply(
+  ctx: discord.Message,
+  options: discord.Message.OutgoingMessageOptions
+) {
+  if (typeof options === "string") {
+    options = { content: options };
+  }
+  let reply: discord.Message;
+  if (replies.has(ctx.id)) {
+    options = Object.assign(
+      { attachments: [], content: "", embed: null },
+      options
+    );
+
+    const old = replies.get(ctx.id)!;
+    if (old.attachments.length || options.attachments.length) {
+      old.delete();
+      reply = await old.reply(options);
+    }
+    reply = await old.edit(options);
+  }
+  replies.set(ctx.id, reply);
+  return reply;
+}

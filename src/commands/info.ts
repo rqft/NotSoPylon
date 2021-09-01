@@ -169,30 +169,45 @@ commands.on(
               embed.addField({ name: "Party", value: description.join("\n") });
             }
           }
-          if (activity.type === discord.Presence.ActivityType.LISTENING &&
-              !!(
-                activity.applicationId &&
-                activity.applicationId.startsWith("spotify:")
-              ) &&
-              !!activity.party.id.startsWith("spotify:")) {
-              const description = [];
-              if (activity.details) {
-                description.push(`[**${activity.details}**](https://open.spotify.com/track/${activity.secrets.join})`);
-              } else {
-                description.push(<string> (`https://open.spotify.com/track/${activity.secrets.join}`));
-              }
-              embed.addField({name: 'Spotify Track', value: description.join('\n'), inline: true});
+          if (
+            activity.type === discord.Presence.ActivityType.LISTENING &&
+            !!(
+              activity.applicationId &&
+              activity.applicationId.startsWith("spotify:")
+            ) &&
+            !!activity.party.id.startsWith("spotify:")
+          ) {
+            const description = [];
+            if (activity.details) {
+              description.push(
+                `[**${activity.details}**](https://open.spotify.com/track/${activity.secrets.join})`
+              );
+            } else {
+              description.push(
+                <string>(
+                  `https://open.spotify.com/track/${activity.secrets.join}`
+                )
+              );
             }
-
-            if (activity.createdAt) {
-              embed.setFooter({ text: 'Started' });
-              embed.setTimestamp(activity.createdAt.toISOString());
-            }
+            embed.addField({
+              name: "Spotify Track",
+              value: description.join("\n"),
+              inline: true,
+            });
           }
-        } else {
-          embed.addField('Activity', PresenceStatusTexts['offline']);
+
+          if (activity.createdAt) {
+            embed.setFooter({ text: "Started" });
+            embed.setTimestamp(activity.createdAt.toISOString());
+          }
         }
       }
+    } else {
+      embed.addField({
+        name: "Activity",
+        value: PresenceStatusTexts["offline"],
+      });
     }
-  
+    return embed;
+  }
 );

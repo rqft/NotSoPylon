@@ -161,3 +161,9 @@ export function getTotalTime(
   }
   return 0;
 }
+export function emojiIdentifier(emoji: discord.Emoji) {
+  if (emoji.id) {
+    return `${emoji.name}:${emoji.id}`;
+  }
+  return emoji.name;
+}
