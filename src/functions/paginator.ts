@@ -411,13 +411,17 @@ export class Paginator {
       const embed = await this.getPage(this.page);
       if (this.context instanceof discord.Message) {
         message = this.message = await editOrReply(this.context, { embed });
-      } else {
-        message = this.message = await this.context.reply({ embed });
       }
     }
 
     this.reset();
-    if (!this.stopped && this.pageLimit !== MIN_PAGE && message.canReact) {
+    if (
+      !this.stopped &&
+      this.pageLimit !== MIN_PAGE &&
+      !(await (await discord.getGuild()).getMember(discord.getBotId())).can(
+        discord.Permissions.ADD_REACTIONS
+      )
+    ) {
       setImmediate(async () => {
         try {
           this.timeout.start(this.expires, this.onStop.bind(this));
@@ -437,10 +441,14 @@ export class Paginator {
             if (this.stopped || !message.id) {
               break;
             }
-            if (message.reactions.includes(emoji.id || emoji.name)) {
+            if (
+              message.reactions.find(
+                (v) => v.emoji.id === emoji.id || v.emoji.name === emoji.name
+              ) !== undefined
+            ) {
               continue;
             }
-            await message.react(emoji.endpointFormat);
+            await message.addReaction(emojiIdentifier(emoji));
           }
         } catch (error) {
           if (typeof this.onError === "function") {
