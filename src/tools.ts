@@ -33,3 +33,6 @@ export async function editOrReply(
   replies.set(ctx.id, reply);
   return reply;
 }
+export function defaultAvatarUrl(user: discord.User) {
+  return `https://cdn.discord.com/embed/avatars/${+user.discriminator % 5}.png`;
+}

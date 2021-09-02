@@ -167,3 +167,9 @@ export function emojiIdentifier(emoji: discord.Emoji) {
   }
   return emoji.name;
 }
+export function parseFlagArguments(
+  argument: string,
+  flags: { [key: string]: string }
+) {
+  argument.split(" ");
+}
