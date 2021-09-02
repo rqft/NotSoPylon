@@ -1,6 +1,6 @@
 {
   "name": "NotSoPylon",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "yea",
   "scripts": {
     "typings": "typings install",
