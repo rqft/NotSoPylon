@@ -1,0 +1,7 @@
+{
+    "resolution": "typings/",
+    "globalDependencies": {
+      "discord": "https://pylon.bot/runtime-typings/0.0.1/pylon-runtime-discord.d.ts",
+      "pylon": "https://pylon.bot/runtime-typings/0.0.1/pylon-runtime.d.ts"
+    }
+  }

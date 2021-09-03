@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "target": "es2020",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "downlevelIteration": true,
+    "plugins": [
+      { "name": "typescript-tslint-plugin", "configFile": "../eslintrc.ts" }
+    ],
+    "lib": ["es2020"],
+    "types": ["node"]
+  },
+  "include": ["./"]
+}
