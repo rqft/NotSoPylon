@@ -1,5 +1,5 @@
 import { commands } from "../../globals";
-import { defaultAvatarUrl } from "../../tools";
+import { defaultAvatarUrl, editOrReply } from "../../tools";
 import { createUserEmbed, PresenceStatusColors } from "../../util";
 
 commands.on(
@@ -8,13 +8,18 @@ commands.on(
   },
   (args) => ({
     user: args.userOptional(),
-    defaultFlag: args.stringOptional({
-      choices: ["-default"],
+    flags: args.stringOptional({
+      choices: [
+        "-default",
+        "-noembed",
+        "-default -noembed",
+        "-noembed default",
+      ],
     }),
   }),
   async (message, args) => {
     const { user } = args;
-    const _default = !!args.defaultFlag;
+    const _default = !!args.flags;
     const avatarUrl = _default ? defaultAvatarUrl(user) : user.getAvatarUrl();
     let file: discord.Message.IOutgoingMessageAttachment | undefined;
     if (avatarUrl !== defaultAvatarUrl(user)) {
@@ -27,15 +32,17 @@ commands.on(
     }
     const embed = createUserEmbed(user);
     embed.setColor(PresenceStatusColors.offline);
+    const member = await (await discord.getGuild()).getMember(user.id);
     {
       const description: Array<string> = [];
       description.push(`[**Default**](${defaultAvatarUrl(user)})`);
-      if (user instanceof discord.GuildMember) {
-        if (user.avatar) {
-          description.push(`[**Server**](${user.getAvatarUrl()})`);
-        }
-        if (user.user.avatar) {
-          description.push(`[**User**](${user.user.getAvatarUrl()})`);
+      if (member) {
+        // add when Spencer updates to Gateway v9
+        // if (member.avatar) {
+        //   description.push(`[**Server**](${member.getAvatarUrl()})`);
+        // }
+        if (member.user.avatar) {
+          description.push(`[**User**](${member.user.getAvatarUrl()})`);
         }
       } else {
         if (user.avatar) {
@@ -53,9 +60,12 @@ commands.on(
         embed.setAuthor({ url });
       }
     }
-    const presence = user.presence;
-    if (presence && presence.status in PresenceStatusColors) {
-      embed.setColor(PresenceStatusColors[presence.status]);
+    if (member) {
+      const presence = await member.getPresence();
+      if (presence && presence.status in PresenceStatusColors) {
+        embed.setColor(PresenceStatusColors[presence.status]);
+      }
     }
+    return editOrReply(message, { embed, attachments: [file] });
   }
 );
