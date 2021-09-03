@@ -1,4 +1,4 @@
-import { Timers } from "detritus-utils";
+import * as Timers from "./timers"
 
 import { emojiIdentifier } from "../util";
 
