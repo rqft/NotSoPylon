@@ -15,9 +15,7 @@ commands.on(
   async (message, args) => {
     const { user } = args;
     const _default = !!args.defaultFlag;
-    const avatarUrl = args.defaultFlag
-      ? defaultAvatarUrl(user)
-      : user.getAvatarUrl();
+    const avatarUrl = _default ? defaultAvatarUrl(user) : user.getAvatarUrl();
     let file: discord.Message.IOutgoingMessageAttachment | undefined;
     if (avatarUrl !== defaultAvatarUrl(user)) {
       try {
@@ -45,6 +43,19 @@ commands.on(
         }
       }
       embed.setDescription(description.join(", "));
+    }
+    if (_default) {
+      embed.setImage({ url: avatarUrl });
+    } else {
+      const url = file ? `attachment://${file.name}` : user.getAvatarUrl();
+      embed.setImage({ url });
+      if (file) {
+        embed.setAuthor({ url });
+      }
+    }
+    const presence = user.presence;
+    if (presence && presence.status in PresenceStatusColors) {
+      embed.setColor(PresenceStatusColors[presence.status]);
     }
   }
 );
