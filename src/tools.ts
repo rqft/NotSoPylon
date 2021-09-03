@@ -1,3 +1,5 @@
+import { timestamp } from "./functions/snowflake";
+
 export function toTitleCase(value: string): string {
   return value
     .replace(/_/g, " ")
@@ -35,4 +37,14 @@ export async function editOrReply(
 }
 export function defaultAvatarUrl(user: discord.User) {
   return `https://cdn.discord.com/embed/avatars/${+user.discriminator % 5}.png`;
+}
+export function expandStructure<T>(
+  a: T & { id: string }
+): T & { createdAt: Date; createdAtUnix: number; age: () => number } {
+  return {
+    ...a,
+    createdAt: new Date(timestamp(a.id)),
+    createdAtUnix: timestamp(a.id),
+    age: () => Date.now() - timestamp(a.id),
+  };
 }

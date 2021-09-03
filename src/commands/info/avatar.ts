@@ -5,6 +5,7 @@ import { createUserEmbed, PresenceStatusColors } from "../../util";
 commands.on(
   {
     name: "avatar",
+    description: "Get the avatar for a user, defaults to self",
   },
   (args) => ({
     user: args.userOptional(),
