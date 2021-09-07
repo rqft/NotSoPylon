@@ -1,3 +1,5 @@
+import { timeMap } from "./globals";
+
 export async function asyncIteratorToArray<T>(
   iterator: AsyncIterableIterator<T>
 ) {
@@ -22,26 +24,7 @@ export function createUserEmbed(
   });
   return embed;
 }
-export enum Statuses {
-  ONLINE = "online",
-  DND = "dnd",
-  IDLE = "idle",
-  INVISIBLE = "invisible",
-  OFFLINE = "offline",
-}
-export const PresenceStatusColors = {
-  online: 4437377,
-  dnd: 15746887,
-  idle: 16426522,
-  offline: 7634829,
-};
 
-export const PresenceStatusTexts = {
-  online: "Online",
-  dnd: "Do Not Disturb",
-  idle: "Idle",
-  offline: "Offline",
-};
 export function formatEmoji(
   emoji: discord.Emoji | discord.Presence.IActivityEmoji
 ) {
@@ -173,17 +156,7 @@ export function parseFlagArguments(
 ) {
   argument.split(" ");
 }
-const timeMap = new Map([
-  ["decade", 1000 * 60 * 60 * 24 * 365 * 10],
-  ["year", 1000 * 60 * 60 * 24 * 365],
-  ["month", 1000 * 60 * 60 * 24 * 31],
-  ["week", 1000 * 60 * 60 * 24 * 7],
-  ["day", 1000 * 60 * 60 * 24],
-  ["hour", 1000 * 60 * 60],
-  ["minute", 1000 * 60],
-  ["second", 1000],
-  ["millisecond", 1],
-]);
+
 export function getLongAgoFormat(
   ts: number,
   limiter: number,
@@ -232,4 +205,11 @@ export function getLongAgoFormat(
     runsc += 1;
   }
   return txtret.join(", ");
+}
+export function guildJumplink(guildId?: string) {
+  return `https://discord.com/channels/${guildId || "@me"}`;
+}
+export function channelJumplink(channel: discord.Channel, guildId?: string) {
+  guildId ??= channel instanceof discord.GuildChannel ? channel.guildId : "@me";
+  return guildJumplink(guildId) + `/${channel.id}`;
 }

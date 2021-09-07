@@ -1,5 +1,9 @@
 import { findMember } from "../../functions/findUser";
-import { commands } from "../../globals";
+import {
+  commands,
+  PresenceStatusColors,
+  PresenceStatusTexts,
+} from "../../globals";
 import { toTitleCase } from "../../tools";
 import * as Markup from "../../functions/markup";
 import {
@@ -10,9 +14,8 @@ import {
   formatTime,
   getElapsedTime,
   getTotalTime,
-  PresenceStatusColors,
-  PresenceStatusTexts,
 } from "../../util";
+
 import { Paginator } from "../../functions/paginator";
 
 commands.on(

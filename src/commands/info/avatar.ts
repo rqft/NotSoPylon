@@ -1,6 +1,6 @@
-import { commands } from "../../globals";
+import { commands, PresenceStatusColors } from "../../globals";
 import { defaultAvatarUrl, editOrReply } from "../../tools";
-import { createUserEmbed, PresenceStatusColors } from "../../util";
+import { createUserEmbed } from "../../util";
 
 commands.on(
   {
