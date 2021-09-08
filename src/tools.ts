@@ -48,3 +48,9 @@ export function expandStructure<T>(
     age: () => Date.now() - timestamp(a.id),
   };
 }
+export function guildIdToShardId(
+  guildId: string,
+  shardCount: number = 0
+): number {
+  return Math.round(+guildId / (1 << 22)) % shardCount;
+}

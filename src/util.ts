@@ -1,4 +1,4 @@
-import { timeMap } from "./globals";
+import { LocalesText, timeMap } from "./globals";
 
 export async function asyncIteratorToArray<T>(
   iterator: AsyncIterableIterator<T>
@@ -212,4 +212,20 @@ export function guildJumplink(guildId?: string) {
 export function channelJumplink(channel: discord.Channel, guildId?: string) {
   guildId ??= channel instanceof discord.GuildChannel ? channel.guildId : "@me";
   return guildJumplink(guildId) + `/${channel.id}`;
+}
+export function getAcronym(name?: string): string {
+  if (name != null) {
+    return name.replace(/\w+/g, (match) => match[0]).replace(/\s/g, "");
+  }
+  return "";
+}
+export function preferredLocaleText(guild: discord.Guild): string {
+  if (guild.preferredLocale in LocalesText) {
+    return LocalesText[this.preferredLocale];
+  }
+  return "";
+}
+export function guildHasPublic(guild: discord.Guild) {
+  const features: Array<string> = guild.features;
+  return features.includes("PUBLIC") && !features.includes("PUBLIC_DISABLED");
 }
