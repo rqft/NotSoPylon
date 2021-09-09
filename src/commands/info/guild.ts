@@ -95,5 +95,29 @@ commands.on(
         inline: true,
       });
     }
+    {
+      const description: Array<string> = [];
+
+      description.push(`**AFK Timeout**: ${guild.afkTimeout} seconds`);
+      description.push(
+        `**Content Filter**: ${
+          GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] ||
+          "Unknown"
+        }`
+      );
+      description.push(
+        `**Message Notifs**: ${
+          guild.defaultMessageNotifications ? "Mentions" : "All"
+        }`
+      );
+      description.push(`**MFA**: ${guild.mfaLevel ? "Required" : "Optional"}`);
+      description.push(
+        `**Verification**: ${
+          VerificationLevelTexts[guild.verificationLevel] || "Unknown"
+        }`
+      );
+
+      embed.addField("Moderation", description.join("\n"), true);
+    }
   }
 );
