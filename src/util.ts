@@ -9,7 +9,6 @@ import {
   PremiumGuildTiers,
   timeMap,
 } from "./globals";
-import { normalize } from "./tools";
 
 export async function asyncIteratorToArray<T>(
   iterator: AsyncIterableIterator<T>
@@ -220,7 +219,10 @@ export function getLongAgoFormat(
 export function guildJumplink(guildId?: string) {
   return `https://discord.com/channels/${guildId || "@me"}`;
 }
-export function channelJumplink(channel: discord.Channel, guildId?: string) {
+export function channelJumplink(
+  channel: discord.Channel | discord.Invite.ChannelData,
+  guildId?: string
+) {
   guildId ??= channel instanceof discord.GuildChannel ? channel.guildId : "@me";
   return guildJumplink(guildId) + `/${channel.id}`;
 }
@@ -269,4 +271,36 @@ export function getMaxEmojis(guild: discord.Guild): number {
     ? MAX_EMOJI_SLOTS_MORE
     : MAX_EMOJI_SLOTS;
   return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].emoji);
+}
+export enum Urls {
+  BLOG = "https://blog.discord.com/",
+  CANARY = "https://canary.discord.com/",
+  CDN = "https://cdn.discordapp.com/",
+  FEEDBACK = "https://feedback.discord.com/",
+  GIFT = "https://discord.gift/",
+  INVITE = "https://discord.gg/",
+  MEDIA = "https://media.discordapp.net/",
+  ROUTER = "https://router.discordapp.net/",
+  STABLE = "https://discord.com/",
+  STABLE_OLD = "https://discordapp.com/",
+  STATUS = "https://status.discord.com/",
+  SUPPORT = "https://support.discord.com/",
+  SUPPORT_DEV = "https://support-dev.discord.com/",
+  TEMPLATE = "https://discord.new/",
+}
+export const getGuildIcon = (
+  guildId: string,
+  hash: string,
+  format: string = "png"
+): string => `${Urls.CDN}icons/${guildId}/${hash}.${format}`;
+export async function apiping(): Promise<{ gateway: number; rest: number }> {
+  return {
+    gateway: await latency(discord.getBotUser),
+    rest: await latency(discord.getGuild),
+  };
+}
+export async function latency(cb: (...a: any) => any) {
+  const start = Date.now();
+  await cb();
+  return Date.now() - start;
 }
