@@ -54,3 +54,15 @@ export function guildIdToShardId(
 ): number {
   return Math.round(+guildId / (1 << 22)) % shardCount;
 }
+export function formatMemory(bytes: number, decimals: number = 0): string {
+  const divideBy = 1024;
+  const amount = Math.floor(Math.log(bytes) / Math.log(divideBy));
+  const type = ["B", "KB", "MB", "GB", "TB"][amount];
+  return (bytes / Math.pow(divideBy, amount)).toFixed(decimals) + " " + type;
+}
+export function normalize(object: { [key: string]: any }) {
+  for (const key in object) {
+    object[key] = key;
+  }
+  return Object.freeze(object);
+}

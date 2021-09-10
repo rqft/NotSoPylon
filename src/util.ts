@@ -1,4 +1,15 @@
-import { LocalesText, timeMap } from "./globals";
+import {
+  GuildFeature,
+  LocalesText,
+  MAX_ATTACHMENT_SIZE,
+  MAX_BITRATE,
+  MAX_EMOJI_SLOTS,
+  MAX_EMOJI_SLOTS_MORE,
+  PremiumGuildLimits,
+  PremiumGuildTiers,
+  timeMap,
+} from "./globals";
+import { normalize } from "./tools";
 
 export async function asyncIteratorToArray<T>(
   iterator: AsyncIterableIterator<T>
@@ -225,7 +236,37 @@ export function preferredLocaleText(guild: discord.Guild): string {
   }
   return "";
 }
+
+export function guildHasFeature(guild: discord.Guild, feature: GuildFeature) {
+  const features: Array<string> = guild.features;
+  return features.includes(feature);
+}
 export function guildHasPublic(guild: discord.Guild) {
   const features: Array<string> = guild.features;
-  return features.includes("PUBLIC") && !features.includes("PUBLIC_DISABLED");
+  return (
+    guildHasFeature(guild, GuildFeature.PUBLIC) &&
+    !guildHasFeature(guild, GuildFeature.PUBLIC_DISABLED)
+  );
+}
+export function getMaxAttachmentSize(guild: discord.Guild): number {
+  const max = MAX_ATTACHMENT_SIZE;
+  return Math.max(
+    max,
+    (PremiumGuildLimits as any)[guild.premiumTier].attachment
+  );
+}
+
+export function getMaxBitrate(guild: discord.Guild): number {
+  let max = MAX_BITRATE;
+  if (guildHasFeature(guild, GuildFeature.VIP_REGIONS)) {
+    max = (PremiumGuildLimits as any)[PremiumGuildTiers.TIER_3].bitrate;
+  }
+  return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].bitrate);
+}
+
+export function getMaxEmojis(guild: discord.Guild): number {
+  const max = guildHasFeature(guild, GuildFeature.MORE_EMOJI)
+    ? MAX_EMOJI_SLOTS_MORE
+    : MAX_EMOJI_SLOTS;
+  return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].emoji);
 }

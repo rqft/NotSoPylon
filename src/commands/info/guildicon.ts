@@ -1,4 +1,6 @@
-import { commands } from "../../globals";
+import { Colors, commands } from "../../globals";
+import { editOrReply } from "../../tools";
+import { guildJumplink } from "../../util";
 
 commands.on(
   {
@@ -9,20 +11,30 @@ commands.on(
   async (message, args) => {
     const guild = await discord.getGuild();
     if (guild.icon) {
-      const url = guild.getIconUrl() as string;
+      const iconUrl = guild.getIconUrl() as string;
 
       const channel = await message.getChannel();
-      if (channel && channel.canMember()) {
-        const embed = new Embed();
-        embed.setAuthor(guild.name, url, guild.jumpLink);
+      if (
+        channel &&
+        channel.canMember(
+          await guild.getMember(discord.getBotId()),
+          discord.Permissions.EMBED_LINKS
+        )
+      ) {
+        const embed = new discord.Embed();
+        embed.setAuthor({
+          name: guild.name,
+          iconUrl,
+          url: guildJumplink(guild.id),
+        });
         embed.setColor(Colors.BLURPLE);
-        embed.setDescription(`[**Icon Url**](${guild.iconUrl})`);
-        embed.setImage(url);
+        embed.setDescription(`[**Icon Url**](${guild.getIconUrl()})`);
+        embed.setImage({ url: iconUrl });
 
-        return editOrReply(context, { embed });
+        return editOrReply(message, { embed });
       }
-      return editOrReply(context, url);
+      return editOrReply(message, { content: iconUrl });
     }
-    return editOrReply(context, "Guild doesn't have an icon.");
+    return editOrReply(message, { content: "Guild doesn't have an icon." });
   }
 );
