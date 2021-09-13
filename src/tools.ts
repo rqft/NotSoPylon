@@ -99,3 +99,81 @@ export function URIEncodeWrap(unsafe: URIEncodeWrapped): URIEncodeWrapped {
   }
   return Object.freeze(safe);
 }
+export function hexToInt(hex: string): number {
+  return parseInt(hex.replace(/#/, ""), 16);
+}
+
+export function intToHex(int: number, hashtag?: boolean): string {
+  return (hashtag ? "#" : "") + int.toString(16).padStart(6, "0");
+}
+
+export function intToRGB(int: number): {
+  r: number;
+  g: number;
+  b: number;
+} {
+  return {
+    r: (int >> 16) & 0x0ff,
+    g: (int >> 8) & 0x0ff,
+    b: int & 0x0ff,
+  };
+}
+export function rgbToInt(r: number, g: number, b: number): number {
+  return ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
+}
+
+export function toCamelCase(value: string): string {
+  if (!value.includes("_")) {
+    return value;
+  }
+  value = value
+    .split("_")
+    .map((v) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase())
+    .join("");
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+export function padCodeBlockFromRows(
+  strings: Array<Array<string>>,
+  options: {
+    join?: string;
+    padding?: string;
+    padFunc?: (targetLength: number, padString?: string) => string;
+  } = {}
+): Array<string> {
+  const padding = options.padding === undefined ? " " : options.padding;
+  const padFunc =
+    options.padFunc === undefined ? String.prototype.padStart : options.padFunc;
+  const join = options.join === undefined ? " " : options.join;
+
+  const columns: Array<Array<string>> = [];
+  const columnsAmount = strings.reduce((x, row) => Math.max(x, row.length), 0);
+
+  for (let i = 0; i < columnsAmount; i++) {
+    const column: Array<string> = [];
+
+    let max = 0;
+    for (const row of strings) {
+      if (i in row) {
+        max = Math.max(max, row[i].length);
+      }
+    }
+    for (const row of strings) {
+      if (i in row) {
+        column.push(padFunc.call(row[i], max, padding));
+      }
+    }
+    columns.push(column);
+  }
+
+  const rows: Array<string> = [];
+  for (let i = 0; i < strings.length; i++) {
+    const row: Array<string> = [];
+    for (const column of columns) {
+      if (i in column) {
+        row.push(column[i]);
+      }
+    }
+    rows.push(row.join(join));
+  }
+  return rows;
+}

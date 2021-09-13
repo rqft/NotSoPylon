@@ -417,3 +417,366 @@ export const SPOILER_ATTACHMENT_PREFIX = "SPOILER_";
 export const MESSAGE_DELETE_RATELIMIT_CHECK = 10 * 1000 - 200; // 10 seconds
 export const MESSAGE_DELETE_RATELIMIT_CHECK_OLDER =
   2 * 7 * 24 * 60 * 60 * 1000 - 200; // 2 weeks
+export interface DiscordRegexMatch {
+  animated?: boolean;
+  channelId?: string;
+  guildId?: string;
+  id?: string;
+  language?: string;
+  matched: string;
+  mentionType?: string;
+  messageId?: string;
+  name?: string;
+  text?: string;
+}
+
+export interface DiscordRegexPayload {
+  match: {
+    regex: RegExp;
+    type: string;
+  };
+  matches: Array<DiscordRegexMatch>;
+}
+
+export function regex(
+  type: string,
+  content: string,
+  onlyFirst: boolean = false
+): DiscordRegexPayload {
+  type = String(type || "").toUpperCase();
+  const regex = (DiscordRegex as any)[type];
+  if (regex === undefined) {
+    throw new Error(`Unknown regex type: ${type}`);
+  }
+  regex.lastIndex = 0;
+
+  const payload: DiscordRegexPayload = {
+    match: { regex, type },
+    matches: [],
+  };
+
+  let match: RegExpExecArray | null = null;
+  while ((match = regex.exec(content))) {
+    const result: DiscordRegexMatch = { matched: match[0] };
+    switch (type) {
+      case DiscordRegexNames.EMOJI:
+        {
+          result.name = match[1] as string;
+          result.id = match[2] as string;
+          result.animated = content.startsWith("<a:");
+        }
+        break;
+      case DiscordRegexNames.JUMP_CHANNEL:
+        {
+          result.guildId = match[1] as string;
+          result.channelId = match[2] as string;
+        }
+        break;
+      case DiscordRegexNames.JUMP_CHANNEL_MESSAGE:
+        {
+          result.guildId = match[1] as string;
+          result.channelId = match[2] as string;
+          result.messageId = match[3] as string;
+        }
+        break;
+      case DiscordRegexNames.MENTION_CHANNEL:
+      case DiscordRegexNames.MENTION_ROLE:
+        {
+          result.id = match[1] as string;
+        }
+        break;
+      case DiscordRegexNames.MENTION_USER:
+        {
+          result.id = match[2] as string;
+          result.mentionType = match[1] as string;
+        }
+        break;
+      case DiscordRegexNames.TEXT_CODEBLOCK:
+        {
+          result.language = match[2] as string;
+          result.text = match[3] as string;
+        }
+        break;
+      case DiscordRegexNames.TEXT_BOLD:
+      case DiscordRegexNames.TEXT_CODESTRING:
+      case DiscordRegexNames.TEXT_ITALICS:
+      case DiscordRegexNames.TEXT_SNOWFLAKE:
+      case DiscordRegexNames.TEXT_SPOILER:
+      case DiscordRegexNames.TEXT_STRIKE:
+      case DiscordRegexNames.TEXT_UNDERLINE:
+      case DiscordRegexNames.TEXT_URL:
+        {
+          result.text = match[1] as string;
+        }
+        break;
+      default: {
+        throw new Error(`Unknown regex type: ${type}`);
+      }
+    }
+    payload.matches.push(result);
+
+    if (onlyFirst) {
+      break;
+    }
+  }
+  regex.lastIndex = 0;
+  return payload;
+}
+export enum DiscordRegexNames {
+  EMOJI = "EMOJI",
+  JUMP_CHANNEL = "JUMP_CHANNEL",
+  JUMP_CHANNEL_MESSAGE = "JUMP_CHANNEL_MESSAGE",
+  MENTION_CHANNEL = "MENTION_CHANNEL",
+  MENTION_ROLE = "MENTION_ROLE",
+  MENTION_USER = "MENTION_USER",
+  TEXT_BOLD = "TEXT_BOLD",
+  TEXT_CODEBLOCK = "TEXT_CODEBLOCK",
+  TEXT_CODESTRING = "TEXT_CODESTRING",
+  TEXT_ITALICS = "TEXT_ITALICS",
+  TEXT_SNOWFLAKE = "TEXT_SNOWFLAKE",
+  TEXT_SPOILER = "TEXT_SPOILER",
+  TEXT_STRIKE = "TEXT_STRIKE",
+  TEXT_UNDERLINE = "TEXT_UNDERLINE",
+  TEXT_URL = "TEXT_URL",
+}
+
+export const DiscordRegex = Object.freeze({
+  [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.JUMP_CHANNEL]:
+    /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
+  [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]:
+    /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
+  [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
+  [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
+  [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,
+  [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/g,
+  [DiscordRegexNames.TEXT_CODEBLOCK]:
+    /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/gi,
+  [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/g,
+  [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/g,
+  [DiscordRegexNames.TEXT_SNOWFLAKE]: /(\d+)/g,
+  [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/g,
+  [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/g,
+  [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/g,
+  [DiscordRegexNames.TEXT_URL]: /((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])/g,
+});
+
+export const DateOptions = {
+  timeZone: "America/Chicago",
+};
+export const Permissions = Object.freeze({
+  NONE: 0n,
+  CREATE_INSTANT_INVITE: 1n << 0n,
+  KICK_MEMBERS: 1n << 1n,
+  BAN_MEMBERS: 1n << 2n,
+  ADMINISTRATOR: 1n << 3n,
+  MANAGE_CHANNELS: 1n << 4n,
+  MANAGE_GUILD: 1n << 5n,
+  ADD_REACTIONS: 1n << 6n,
+  VIEW_AUDIT_LOG: 1n << 7n,
+  PRIORITY_SPEAKER: 1n << 8n,
+  STREAM: 1n << 9n,
+  VIEW_CHANNEL: 1n << 10n,
+  SEND_MESSAGES: 1n << 11n,
+  SEND_TTS_MESSAGES: 1n << 12n,
+  MANAGE_MESSAGES: 1n << 13n,
+  EMBED_LINKS: 1n << 14n,
+  ATTACH_FILES: 1n << 15n,
+  READ_MESSAGE_HISTORY: 1n << 16n,
+  MENTION_EVERYONE: 1n << 17n,
+  USE_EXTERNAL_EMOJIS: 1n << 18n,
+  VIEW_GUILD_ANALYTICS: 1n << 19n,
+  CONNECT: 1n << 20n,
+  SPEAK: 1n << 21n,
+  MUTE_MEMBERS: 1n << 22n,
+  DEAFEN_MEMBERS: 1n << 23n,
+  MOVE_MEMBERS: 1n << 24n,
+  USE_VAD: 1n << 25n,
+  CHANGE_NICKNAME: 1n << 26n,
+  CHANGE_NICKNAMES: 1n << 27n,
+  MANAGE_ROLES: 1n << 28n,
+  MANAGE_WEBHOOKS: 1n << 29n,
+  MANAGE_EMOJIS: 1n << 30n,
+  USE_APPLICATION_COMMANDS: 1n << 31n,
+  REQUEST_TO_SPEAK: 1n << 32n,
+  MANAGE_EVENTS: 1n << 33n,
+  MANAGE_THREADS: 1n << 34n,
+  USE_PUBLIC_THREADS: 1n << 35n,
+  USE_PRIVATE_THREADS: 1n << 36n,
+  USE_EXTERNAL_STICKERS: 1n << 37n,
+  SEND_MESSAGES_IN_THREADS: 1n << 38n,
+});
+
+export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_ALL_TEXT = [
+  Permissions.ADD_REACTIONS,
+  Permissions.SEND_MESSAGES,
+  Permissions.SEND_TTS_MESSAGES,
+  Permissions.MANAGE_MESSAGES,
+  Permissions.EMBED_LINKS,
+  Permissions.ATTACH_FILES,
+  Permissions.READ_MESSAGE_HISTORY,
+  Permissions.MENTION_EVERYONE,
+  Permissions.USE_EXTERNAL_EMOJIS,
+  Permissions.USE_APPLICATION_COMMANDS,
+  Permissions.MANAGE_THREADS,
+  Permissions.USE_PUBLIC_THREADS,
+  Permissions.USE_PRIVATE_THREADS,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_ALL_VOICE = [
+  Permissions.PRIORITY_SPEAKER,
+  Permissions.STREAM,
+  Permissions.CONNECT,
+  Permissions.SPEAK,
+  Permissions.MUTE_MEMBERS,
+  Permissions.DEAFEN_MEMBERS,
+  Permissions.MOVE_MEMBERS,
+  Permissions.USE_VAD,
+  Permissions.REQUEST_TO_SPEAK,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_DEFAULT = [
+  Permissions.CREATE_INSTANT_INVITE,
+  Permissions.CHANGE_NICKNAME,
+  Permissions.VIEW_CHANNEL,
+
+  Permissions.ADD_REACTIONS,
+  Permissions.SEND_MESSAGES,
+  Permissions.SEND_TTS_MESSAGES,
+  Permissions.EMBED_LINKS,
+  Permissions.ATTACH_FILES,
+  Permissions.READ_MESSAGE_HISTORY,
+  Permissions.MENTION_EVERYONE,
+  Permissions.USE_EXTERNAL_EMOJIS,
+
+  Permissions.STREAM,
+  Permissions.CONNECT,
+  Permissions.SPEAK,
+  Permissions.USE_VAD,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_LURKER = [
+  Permissions.VIEW_CHANNEL,
+  Permissions.READ_MESSAGE_HISTORY,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_FOR_GUILD = [Permissions.ADMINISTRATOR].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_FOR_CHANNEL_TEXT = [Permissions.ADMINISTRATOR].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+
+export const PERMISSIONS_FOR_CHANNEL_VOICE = [Permissions.ADMINISTRATOR].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE
+);
+export const PERMISSIONS_ADMIN = Object.freeze([
+  Permissions.ADMINISTRATOR,
+  Permissions.BAN_MEMBERS,
+  Permissions.CHANGE_NICKNAMES,
+  Permissions.KICK_MEMBERS,
+  Permissions.MANAGE_CHANNELS,
+  Permissions.MANAGE_EMOJIS,
+  Permissions.MANAGE_GUILD,
+  Permissions.MANAGE_MESSAGES,
+  Permissions.MANAGE_ROLES,
+  Permissions.MANAGE_THREADS,
+  Permissions.MANAGE_WEBHOOKS,
+  Permissions.VIEW_AUDIT_LOG,
+  Permissions.VIEW_GUILD_ANALYTICS,
+]);
+
+export const PERMISSIONS_TEXT = Object.freeze([
+  Permissions.ADD_REACTIONS,
+  Permissions.ATTACH_FILES,
+  Permissions.CREATE_INSTANT_INVITE,
+  Permissions.EMBED_LINKS,
+  Permissions.MENTION_EVERYONE,
+  Permissions.READ_MESSAGE_HISTORY,
+  Permissions.SEND_MESSAGES,
+  Permissions.SEND_TTS_MESSAGES,
+  Permissions.USE_APPLICATION_COMMANDS,
+  Permissions.USE_EXTERNAL_EMOJIS,
+  Permissions.USE_PRIVATE_THREADS,
+  Permissions.USE_PUBLIC_THREADS,
+  Permissions.VIEW_CHANNEL,
+]);
+
+export const PERMISSIONS_VOICE = Object.freeze([
+  Permissions.CONNECT,
+  Permissions.CREATE_INSTANT_INVITE,
+  Permissions.DEAFEN_MEMBERS,
+  Permissions.MOVE_MEMBERS,
+  Permissions.MUTE_MEMBERS,
+  Permissions.PRIORITY_SPEAKER,
+  Permissions.REQUEST_TO_SPEAK,
+  Permissions.SPEAK,
+  Permissions.STREAM,
+  Permissions.USE_VAD,
+  Permissions.VIEW_CHANNEL,
+]);
+
+export const PermissionsText = Object.freeze({
+  [String(Permissions.ADD_REACTIONS)]: "Add Reactions",
+  [String(Permissions.ADMINISTRATOR)]: "Administrator",
+  [String(Permissions.ATTACH_FILES)]: "Attach Files",
+  [String(Permissions.BAN_MEMBERS)]: "Ban Members",
+  [String(Permissions.CHANGE_NICKNAME)]: "Change Nickname",
+  [String(Permissions.CHANGE_NICKNAMES)]: "Change Nicknames",
+  [String(Permissions.CONNECT)]: "Connect",
+  [String(Permissions.CREATE_INSTANT_INVITE)]: "Create Instant Invite",
+  [String(Permissions.DEAFEN_MEMBERS)]: "Deafen Members",
+  [String(Permissions.EMBED_LINKS)]: "Embed Links",
+  [String(Permissions.KICK_MEMBERS)]: "Kick Members",
+  [String(Permissions.MANAGE_CHANNELS)]: "Manage Channels",
+  [String(Permissions.MANAGE_EMOJIS)]: "Manage Emojis",
+  [String(Permissions.MANAGE_GUILD)]: "Manage Guild",
+  [String(Permissions.MANAGE_MESSAGES)]: "Manage Messages",
+  [String(Permissions.MANAGE_ROLES)]: "Manage Roles",
+  [String(Permissions.MANAGE_THREADS)]: "Manage Threads",
+  [String(Permissions.MANAGE_WEBHOOKS)]: "Manage Webhooks",
+  [String(Permissions.MENTION_EVERYONE)]: "Mention Everyone",
+  [String(Permissions.MOVE_MEMBERS)]: "Move Members",
+  [String(Permissions.MUTE_MEMBERS)]: "Mute Members",
+  [String(Permissions.NONE)]: "None",
+  [String(Permissions.PRIORITY_SPEAKER)]: "Priority Speaker",
+  [String(Permissions.READ_MESSAGE_HISTORY)]: "Read Message History",
+  [String(Permissions.REQUEST_TO_SPEAK)]: "Request To Speak",
+  [String(Permissions.SEND_MESSAGES)]: "Send Messages",
+  [String(Permissions.SEND_TTS_MESSAGES)]: "Text-To-Speech",
+  [String(Permissions.SPEAK)]: "Speak",
+  [String(Permissions.STREAM)]: "Go Live",
+  [String(Permissions.USE_APPLICATION_COMMANDS)]: "Use Application Commands",
+  [String(Permissions.USE_EXTERNAL_EMOJIS)]: "Use External Emojis",
+  [String(Permissions.USE_PRIVATE_THREADS)]: "Use Private Threads",
+  [String(Permissions.USE_PUBLIC_THREADS)]: "Use Public Threads",
+  [String(Permissions.USE_VAD)]: "Voice Auto Detect",
+  [String(Permissions.VIEW_AUDIT_LOG)]: "View Audit Logs",
+  [String(Permissions.VIEW_CHANNEL)]: "View Channel",
+  [String(Permissions.VIEW_GUILD_ANALYTICS)]: "View Guild Analytics",
+});
+export enum BooleanEmojis {
+  NO = "❌",
+  YES = "✅",
+}
