@@ -13,10 +13,13 @@ export function toTitleCase(value: string): string {
 const replies = new Map<string, discord.Message>();
 export async function editOrReply(
   ctx: discord.Message,
-  options: discord.Message.OutgoingMessageOptions
+  options: discord.Message.OutgoingMessageOptions | string | discord.Embed
 ) {
   if (typeof options === "string") {
     options = { content: options };
+  }
+  if (options instanceof discord.Embed) {
+    options = { embed: options };
   }
   let reply: discord.Message;
   if (replies.has(ctx.id)) {

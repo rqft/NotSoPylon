@@ -1,2 +1,2 @@
 import "./info/_";
-import "./utils";
+import "./utils/_";
