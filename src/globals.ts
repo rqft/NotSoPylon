@@ -6,6 +6,32 @@ export const commands = new discord.command.CommandGroup({
 export enum Colors {
   BLURPLE = 7506394,
 }
+export enum EmbedBrands {
+  DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
+  E621 = 'https://cdn.notsobot.com/brands/e621.png',
+  GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
+  GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
+  NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
+  REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
+  RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
+  RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',
+  STEAM = 'https://cdn.notsobot.com/brands/steam.png',
+  URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
+  WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
+  WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
+  YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
+};
+export enum EmbedColors {
+  DARK_MESSAGE_BACKGROUND = 3092790,
+  DEFAULT = 8684933,
+  ERROR = 15746887,
+  LOG_CREATION = 4437377,
+  LOG_DELETION = 15746887,
+  LOG_UPDATE = 16426522,
+  STEAM_IN_GAME = 9484860,
+  STEAM_OFFLINE = 9013641,
+  STEAM_ONLINE = 5753822,
+};
 export const timeMap = new Map([
   ["decade", 1000 * 60 * 60 * 24 * 365 * 10],
   ["year", 1000 * 60 * 60 * 24 * 365],
@@ -562,7 +588,7 @@ export const DiscordRegex = Object.freeze({
 });
 
 export const DateOptions = {
-  timeZone: "America/Chicago",
+  timeZone: config.timezone,
 };
 export const Permissions = Object.freeze({
   NONE: 0n,
