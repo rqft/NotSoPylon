@@ -1,0 +1,10 @@
+import './exif';
+import './hash';
+import './labels';
+import './ocr';
+import './ocrtranslate';
+import './qr.create';
+import './qr.scan';
+import './safetylabels';
+import './screenshot';
+import './tr';
