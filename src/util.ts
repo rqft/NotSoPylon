@@ -1,4 +1,5 @@
 import { NotSoPylon } from "./endpoints";
+import { Regexes } from "./functions/markup";
 import {
   GuildFeature,
   LocalesText,
@@ -400,4 +401,52 @@ export function permissionsToObject(
     result[String(check)] = checkPermissions(permissions, check);
   }
   return result;
+}
+export function getFileExtension(
+  file: discord.Message.IMessageAttachment
+): string {
+  const filename = file.filename.split(".");
+  if (filename.length) {
+    return <string>filename.pop();
+  }
+  return "";
+}
+export function splitTextToDiscordHandle(
+  text: string
+): [string, string | null] {
+  const parts = text.split("#");
+  const username = (parts.shift() as string).slice(0, 32).toLowerCase();
+  let discriminator: null | string = null;
+  if (parts.length) {
+    discriminator = (parts.shift() as string).padStart(4, "0");
+  }
+  return [username, discriminator];
+}
+export interface EmojiResponse {
+  url: string;
+  type: "twemoji" | "custom";
+  id: string;
+}
+export function findEmoji(emoj: string): EmojiResponse | undefined {
+  emoj = emoj.toLowerCase();
+  if (![Regexes.EMOJI, Regexes.UNICODE_EMOJI].some((v) => v.test(emoj)))
+    return undefined;
+  var url: string, type: "twemoji" | "custom", id: string;
+  if (!emoj!.replace(/\D/g, "")) {
+    const hex = emoj!.codePointAt(0)!.toString(16);
+    const result = "0000".substring(0, 4 - hex.length) + hex;
+    url = `https://cdn.notsobot.com/twemoji/512x512/${result}.png`;
+    type = "twemoji";
+  } else {
+    url = `https://cdn.discordapp.com/emojis/${emoj?.replace(/\D/g, "")}.${
+      emoj?.startsWith("<a:") ? "gif" : "png"
+    }`;
+    type = "custom";
+    id = emoj?.replace(/\D/g, "");
+  }
+  return {
+    url,
+    type,
+    id,
+  };
 }

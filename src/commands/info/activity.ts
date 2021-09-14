@@ -1,4 +1,3 @@
-import { findMember } from "../../functions/findUser";
 import {
   commands,
   PresenceStatusColors,
@@ -17,6 +16,7 @@ import {
 } from "../../util";
 
 import { Paginator } from "../../functions/paginator";
+import { Parameters } from "../../parameters";
 
 commands.on(
   {
@@ -26,7 +26,7 @@ commands.on(
   },
   (args) => ({ user: args.stringOptional() }),
   async (message, args) => {
-    const user = await findMember(message, args.user);
+    const user = await Parameters.member(message, args.user);
     const presence = await user.getPresence();
     let activities: Array<discord.Presence.IActivity> = presence
       ? presence.activities

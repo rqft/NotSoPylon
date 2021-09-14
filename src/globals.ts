@@ -7,20 +7,20 @@ export enum Colors {
   BLURPLE = 7506394,
 }
 export enum EmbedBrands {
-  DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
-  E621 = 'https://cdn.notsobot.com/brands/e621.png',
-  GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
-  GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
-  NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
-  REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
-  RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
-  RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',
-  STEAM = 'https://cdn.notsobot.com/brands/steam.png',
-  URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
-  WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
-  WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
-  YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
-};
+  DUCK_DUCK_GO = "https://cdn.notsobot.com/brands/duck-duck-go.png",
+  E621 = "https://cdn.notsobot.com/brands/e621.png",
+  GOOGLE_CONTENT_VISION_SAFETY = "https://cdn.notsobot.com/brands/google-content-vision-safety.png",
+  GOOGLE_GO = "https://cdn.notsobot.com/brands/google-go.png",
+  NOTSOBOT = "https://cdn.notsobot.com/brands/notsobot.png",
+  REDDIT = "https://cdn.notsobot.com/brands/reddit.png",
+  RULE34 = "https://cdn.notsobot.com/brands/rule34.png",
+  RULE34_PAHEAL = "https://cdn.notsobot.com/brands/rule34-paheal.png",
+  STEAM = "https://cdn.notsobot.com/brands/steam.png",
+  URBAN = "https://cdn.notsobot.com/brands/urban-dictionary.png",
+  WIKIHOW = "https://cdn.notsobot.com/brands/wikihow.png",
+  WOLFRAM_ALPHA = "https://cdn.notsobot.com/brands/wolfram-alpha.png",
+  YOUTUBE = "https://cdn.notsobot.com/brands/youtube.png",
+}
 export enum EmbedColors {
   DARK_MESSAGE_BACKGROUND = 3092790,
   DEFAULT = 8684933,
@@ -31,7 +31,7 @@ export enum EmbedColors {
   STEAM_IN_GAME = 9484860,
   STEAM_OFFLINE = 9013641,
   STEAM_ONLINE = 5753822,
-};
+}
 export const timeMap = new Map([
   ["decade", 1000 * 60 * 60 * 24 * 365 * 10],
   ["year", 1000 * 60 * 60 * 24 * 365],
@@ -805,4 +805,58 @@ export const PermissionsText = Object.freeze({
 export enum BooleanEmojis {
   NO = "❌",
   YES = "✅",
+}
+export enum MessageEmbedTypes {
+  APPLICATION_NEWS = "application_news",
+  ARTICLE = "article",
+  GIFV = "gifv",
+  IMAGE = "image",
+  LINK = "link",
+  RICH = "rich",
+  TWEET = "tweet",
+  VIDEO = "video",
+}
+export const TRUSTED_URLS = [
+  "cdn.discordapp.com",
+  "images-ext-1.discordapp.net",
+  "images-ext-2.discordapp.net",
+  "media.discordapp.net",
+];
+export const EmbeddableRegexes = Object.freeze({
+  audio: /mp3|ogg|wav|flac/i,
+  image: /png|jpe?g|webp|gif/i,
+  video: /mp4|webm|mov/i,
+});
+export enum Timezones {
+  MIT = "Pacific/Midway",
+  HST = "Us/Hawaii",
+  AST = "US/Alaska",
+  PST = "US/Pacific",
+  PNT = "America/Phoenix",
+  MST = "US/Mountain",
+  CST = "US/Central",
+  EST = "US/Eastern",
+  IET = "US/East-Indiana",
+  PRT = "Etc/GMT-4",
+  CNT = "Canada/Newfoundland",
+  AGT = "Etc/GMT-3",
+  BET = "Brazil/East",
+  CAT = "Etc/GMT-1",
+  GMT = "GMT",
+  ECT = "Etc/GMT+1",
+  EET = "EET",
+  ART = "Egypt",
+  EAT = "Etc/GMT+3",
+  MET = "MET",
+  NET = "Etc/GMT+4",
+  PLT = "Etc/GMT+5",
+  IST = "Etc/GMT+5:30",
+  BST = "Etc/GMT+6",
+  VST = "Etc/GMT+7",
+  CTT = "Etc/GMT+8",
+  JST = "Japan",
+  ACT = "Australia/ACT",
+  AET = "Etc/GMT+10",
+  SST = "Etc/GMT+11",
+  NST = "Etc/GMT+12",
 }
