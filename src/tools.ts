@@ -42,15 +42,17 @@ export function defaultAvatarUrl(user: discord.User) {
   return `https://cdn.discord.com/embed/avatars/${+user.discriminator % 5}.png`;
 }
 export function expandStructure<T>(
-  a: T & { id: string }
+  a: (T & { id: string }) | discord.GuildMember
 ): T & { createdAt: Date; createdAtUnix: number; age: () => number } {
-  return {
+  if (a instanceof discord.GuildMember) a = { ...a, id: a.user.id };
+  const data = {
     ...a,
     createdAt: new Date(timestamp(a.id)),
     createdAtUnix: timestamp(a.id),
     age: () => Date.now() - timestamp(a.id),
   };
 }
+
 export function guildIdToShardId(
   guildId: string,
   shardCount: number = 0

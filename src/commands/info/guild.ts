@@ -2,6 +2,7 @@ import { codeblock, spoiler } from "../../functions/markup";
 import {
   Colors,
   commands,
+  DateOptions,
   DEFAULT_MAX_MEMBERS,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
@@ -73,7 +74,9 @@ commands.on(
         const timestamp = expandStructure(guild);
         description.push(`**Created**: ${timestamp.age()}`);
         description.push(
-          `**->** ${spoiler(timestamp.createdAt.toLocaleString())}`
+          `**->** ${spoiler(
+            timestamp.createdAt.toLocaleString(undefined, DateOptions)
+          )}`
         );
       }
       description.push(`**Id**: \`${guild.id}\``);

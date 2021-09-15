@@ -84,7 +84,7 @@ commands.on(
           )}`
         );
       }
-      if (isMember && member.joinedAtUnix) {
+      if (isMember && new Date(member.joinedAt)) {
         {
           const timestamp = createTimestampMomentFromGuild(
             member.joinedAtUnix,

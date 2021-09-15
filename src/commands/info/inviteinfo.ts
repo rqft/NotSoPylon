@@ -113,7 +113,7 @@ commands.on(
             description.push(
               `**Vanity**: ${url(
                 guild.vanityUrlCode,
-                Endpoints.Invite.SHORT(guild.vanityUrlCode)
+                Endpoints.Discord.Invite.SHORT(guild.vanityUrlCode)
               )}`
             );
           }
@@ -143,7 +143,7 @@ commands.on(
         const description: Array<string> = [];
         description.push(`[**Channel**](${channelJumplink(channel)})`);
         description.push(
-          `[**Invite**](${Endpoints.Invite.SHORT(invite.code)})`
+          `[**Invite**](${Endpoints.Discord.Invite.SHORT(invite.code)})`
         );
 
         if (guild) {
