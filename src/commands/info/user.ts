@@ -1,8 +1,10 @@
+import { time } from "console";
+import * as exp from "constants";
 import { spoiler } from "../../functions/markup";
 import { Paginator } from "../../functions/paginator";
 import { commands, DateOptions, PresenceStatusColors } from "../../globals";
 import { Parameters } from "../../parameters";
-import { expandStructure } from "../../tools";
+import { ExpandedGuildMember, expandStructure } from "../../tools";
 import { getLongAgoFormat } from "../../util";
 
 commands.on(
@@ -86,13 +88,19 @@ commands.on(
       }
       if (isMember && new Date(member.joinedAt)) {
         {
-          const timestamp = createTimestampMomentFromGuild(
-            member.joinedAtUnix,
-            context.guildId
+          const timestamp = <ExpandedGuildMember>(
+            expandStructure({ ...member, id: member.user.id })
           );
-          description.push(`**Guild**: ${timestamp.fromNow()}`);
           description.push(
-            `**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`
+            `**Guild**: ${getLongAgoFormat(timestamp.joinedAtUnix, 2)}`
+          );
+          description.push(
+            `**->** ${spoiler(
+              timestamp.joinedAtTimestamp.toLocaleDateString(
+                undefined,
+                DateOptions
+              )
+            )}`
           );
         }
 

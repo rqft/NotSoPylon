@@ -41,16 +41,34 @@ export async function editOrReply(
 export function defaultAvatarUrl(user: discord.User) {
   return `https://cdn.discord.com/embed/avatars/${+user.discriminator % 5}.png`;
 }
+export type ExpandedStructure = {
+  createdAt: Date;
+  createdAtUnix: number;
+  age: () => number;
+};
+export type ExpandedGuildMember = ExpandedStructure & {
+  joinedAtUnix: number;
+  joinedAtTimestamp: Date;
+  joinedAtAge: () => number;
+};
 export function expandStructure<T>(
-  a: (T & { id: string }) | discord.GuildMember
-): T & { createdAt: Date; createdAtUnix: number; age: () => number } {
-  if (a instanceof discord.GuildMember) a = { ...a, id: a.user.id };
+  a: T & { id: string }
+): (T & ExpandedStructure) | (T & ExpandedGuildMember) {
   const data = {
     ...a,
     createdAt: new Date(timestamp(a.id)),
     createdAtUnix: timestamp(a.id),
     age: () => Date.now() - timestamp(a.id),
   };
+  if (a instanceof discord.GuildMember) {
+    return <T & ExpandedGuildMember & ExpandedStructure>{
+      ...data,
+      joinedAtAge: () => Date.now() - +new Date(a.joinedAt),
+      joinedAtTimestamp: new Date(a.joinedAt),
+      joinedAtUnix: +new Date(a.joinedAt),
+    };
+  }
+  return <T & ExpandedStructure>data;
 }
 
 export function guildIdToShardId(
