@@ -1,6 +1,8 @@
-import { commands } from "../../globals";
-import { editOrReply } from "../../tools";
+import { commands, EmbedBrands, EmbedColors } from "../../globals";
+import { editOrReply, getUrlExtension } from "../../tools";
 import { Parameters } from "../../parameters";
+import { createUserEmbed, formatTime, getFileExtension } from "../../util";
+import { env } from "process";
 commands.on(
   {
     name: "exif",
@@ -10,8 +12,17 @@ commands.on(
     image: args.stringOptional(),
   }),
   async (message, args) => {
-    const image = await Parameters.imageUrl(args.image, message);
-    // const response = await imageExif(message, image);
-    return await editOrReply(message, "unimplemented !!");
+    const image = await Parameters.image(args.image, message);
+    const isGif = getUrlExtension(image.url) === discord.ImageType.GIF;
+    const embed = createUserEmbed(message.member.user);
+    embed.setColor(EmbedColors.DEFAULT);
+    embed.setFooter({
+      text: "Image Exif Information",
+      iconUrl: EmbedBrands.NOTSOBOT,
+    });
+
+    {
+      const;
+    }
   }
 );

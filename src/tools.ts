@@ -1,3 +1,4 @@
+import config from "./config";
 import { timestamp } from "./functions/snowflake";
 
 export function toTitleCase(value: string): string {
@@ -205,4 +206,31 @@ export function padCodeBlockFromRows(
     rows.push(row.join(join));
   }
   return rows;
+}
+export function replace<T>(
+  base: string,
+  entries: [string, T][] | Map<string, T>,
+  keys: { l: string; r: string } = { l: "{", r: "}" }
+): string {
+  for (const [k, v] of entries) {
+    base.split(`${keys.l}${k}${keys.r}`).join("" + v);
+  }
+  return base;
+}
+export function getUrlExtension(url: URL | string) {
+  if (url instanceof URL) url = url.href;
+  return url.split(/[#?]/)[0].split(".").pop().trim().toLowerCase();
+}
+export async function inOutAttachment(
+  attachment: discord.Message.IOutgoingMessageAttachment
+) {
+  const channel = await discord.getGuildTextChannel(config.storage.channelId)!;
+  const msg = await channel.sendMessage({
+    content: replace(config.storage.identifier, [
+      ["rand", Math.random().toString(36).substring(7)],
+      ["filename", attachment.name],
+    ]),
+    attachments: [attachment],
+  });
+  return msg.attachments[0]!;
 }

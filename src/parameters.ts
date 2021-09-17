@@ -3,6 +3,7 @@ import { regex as discordRegex, DiscordRegexNames } from "./globals";
 import { findImageUrlInMessages } from "./functions/findImage";
 
 import { Discord } from "./endpoints";
+import { inOutAttachment } from "./tools";
 export module Parameters {
   export async function role(
     value: string,
@@ -121,7 +122,7 @@ export module Parameters {
 
         // it's in the form of username#discriminator
         if (value.includes("#") && !value.startsWith("#")) {
-          const found = await member(context, value);
+          const found = await Parameters.member(context, value);
           if (found) {
             return found.user.getAvatarUrl();
           }
@@ -188,6 +189,26 @@ export module Parameters {
       return null;
     }
     return null;
+  }
+  interface Image {
+    data: ArrayBuffer;
+    url: URL;
+    attachment: discord.Message.IMessageAttachment;
+  }
+  export async function image(
+    value: string,
+    context: discord.GuildMemberMessage,
+    filename: string = "file.png"
+  ): Promise<Image> {
+    const data = await (
+      await fetch(await imageUrl(value, context))
+    ).arrayBuffer();
+    const url = new URL(await imageUrl(value, context));
+    return {
+      data,
+      url,
+      attachment: await inOutAttachment({ name: filename, data }),
+    };
   }
 
   const foundUserSemantics = [

@@ -41,6 +41,7 @@ commands.on(
     //   digest = hash.digest("hex");
     // }
     const embed = createUserEmbed(message.member.user);
+    embed.setDescription(codeblock("Unable to use module 'node:crypto'"));
     // embed.setColor(EmbedColors.DEFAULT);
     // embed.setFooter({
     //   text: `${title} ${args.secret ? "HMAC" : "Hash"}`,
@@ -53,7 +54,10 @@ commands.on(
     // }
     // embed.addField({ name: "Result", value: codeblock(digest) });
     embed.setColor(EmbedColors.ERROR);
-    embed.setFooter({ iconUrl: EmbedBrands.NOTSOBOT, text: "a" });
+    embed.setFooter({
+      iconUrl: EmbedBrands.NOTSOBOT,
+      text: "NotSoPylon Error",
+    });
 
     return await editOrReply(message, embed);
   }
