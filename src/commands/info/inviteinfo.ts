@@ -5,7 +5,12 @@ import {
   spoiler,
   url,
 } from "../../functions/markup";
-import { Colors, commands, VerificationLevelTexts } from "../../globals";
+import {
+  Colors,
+  commands,
+  DateOptions,
+  VerificationLevelTexts,
+} from "../../globals";
 import { editOrReply, expandStructure, toTitleCase } from "../../tools";
 import {
   channelJumplink,
@@ -56,7 +61,9 @@ commands.on(
             `**Created**: ${getLongAgoFormat(timestamp.createdAtUnix, 2)}`
           );
           description.push(
-            `**->** ${spoiler(timestamp.createdAt.toLocaleString())}`
+            `**->** ${spoiler(
+              timestamp.createdAt.toLocaleString(undefined, DateOptions)
+            )}`
           );
         }
         description.push(`**Id**: ${codestring(channel.id)}`);
@@ -94,7 +101,9 @@ commands.on(
               `**Created**: ${getLongAgoFormat(timestamp.createdAtUnix, 2)}`
             );
             description.push(
-              `**->** ${spoiler(timestamp.createdAt.toLocaleString())}`
+              `**->** ${spoiler(
+                timestamp.createdAt.toLocaleString(undefined, DateOptions)
+              )}`
             );
           }
           description.push(`**Id**: ${codestring(guild.id)}`);

@@ -450,3 +450,16 @@ export function findEmoji(emoj: string): EmojiResponse | undefined {
     id,
   };
 }
+export async function getMemberJoinPosition(
+  guild: discord.Guild,
+  userId: string
+): Promise<[number, number]> {
+  let members: Array<discord.GuildMember>;
+  {
+    members = (await asyncIteratorToArray(guild.iterMembers())).sort(
+      (x, y) => +new Date(x.joinedAt) - +new Date(y.joinedAt)
+    );
+  }
+  const joinPosition = members.findIndex((m) => m.user.id === userId) + 1;
+  return [joinPosition, guild.memberCount];
+}

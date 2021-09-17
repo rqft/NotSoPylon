@@ -1,3 +1,4 @@
+import { Discord } from "../../endpoints";
 import { codeblock, spoiler } from "../../functions/markup";
 import {
   Colors,
@@ -51,7 +52,7 @@ commands.on(
     embed.setColor(Colors.BLURPLE);
 
     if (guild.vanityUrlCode) {
-      embed.setFooter({ text: `https://discord.gg/${guild.vanityUrlCode}` });
+      embed.setFooter({ text: Discord.Invite.SHORT(guild.vanityUrlCode) });
     }
     if (guild.description) {
       embed.setDescription(guild.description);

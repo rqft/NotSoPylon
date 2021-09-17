@@ -18,16 +18,16 @@ export module Discord {
     TEMPLATE = "https://discord.new/",
   }
 
-  export const Assets = Tools.URIEncodeWrap({
+  export const Assets = {
     URL: `${Urls.STABLE.slice(0, -1)}/assets`,
 
     DM_GROUP: "/f046e2247d730629309457e902d5c5b3.svg",
 
     ICON: (hash: string, format: string = "png"): string =>
       `/${hash}.${format}`,
-  });
+  };
 
-  export const CDN = Tools.URIEncodeWrap({
+  export const CDN = {
     URL: Urls.CDN.slice(0, -1),
 
     APP_ASSET: (
@@ -99,9 +99,9 @@ export module Discord {
       `https://static-cdn.jtvnw.net/previews-ttv/live_user_${name}-${width}x${height}.jpg`,
     CUSTOM_YOUTUBE: (videoId: string): string =>
       `https://img.youtube.com/vi/${videoId}/default.jpg`,
-  });
+  };
 
-  export const ConnectionUrls = Tools.URIEncodeWrap({
+  export const ConnectionUrls = {
     FACEBOOK: (id: string): string => `https://www.facebook.com/${id}`,
     REDDIT: (name: string): string => `https://www.reddit.com/u/${name}`,
     SKYPE: (id: string): string => `skype:${id}?userinfo`,
@@ -110,25 +110,25 @@ export module Discord {
     TWITCH: (name: string): string => `https://www.twitch.tv/${name}`,
     TWITTER: (name: string): string => `https://twitter.com/${name}`,
     YOUTUBE: (id: string): string => `https://www.youtube.com/channel/${id}`,
-  });
+  };
 
-  export const EmbedUrls = Tools.URIEncodeWrap({
+  export const EmbedUrls = {
     YOUTUBE: (videoId: string): string =>
       `https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&controls=1&origin=https://discordapp.com`,
-  });
+  };
 
-  export const Gift = Tools.URIEncodeWrap({
+  export const Gift = {
     LONG: (code: string): string => `${Urls.STABLE.slice(0, -1)}/gifts/${code}`,
     SHORT: (code: string): string => `${Urls.GIFT.slice(0, -1)}/${code}`,
-  });
+  };
 
-  export const Invite = Tools.URIEncodeWrap({
+  export const Invite = {
     LONG: (code: string): string =>
       `${Urls.STABLE.slice(0, -1)}/invite/${code}`,
     SHORT: (code: string): string => `${Urls.INVITE.slice(0, -1)}/${code}`,
-  });
+  };
 
-  export const Routes = Tools.URIEncodeWrap({
+  export const Routes = {
     URL: Urls.STABLE.slice(0, -1),
     INDEX: "/",
     INDEX_WORD: "/index",
@@ -247,15 +247,15 @@ export module Discord {
     ): string => `/welcome/${guildId}/${channelId}/${type}`,
     WIDGET: "/widget",
     XBOX_OFFER: "/discord-xbox-offer-2019",
-  });
+  };
 
-  export const Template = Tools.URIEncodeWrap({
+  export const Template = {
     LONG: (code: string): string =>
       `${Urls.STABLE.slice(0, -1)}/template/${code}`,
     SHORT: (code: string): string => `${Urls.TEMPLATE.slice(0, -1)}/${code}`,
-  });
+  };
 
-  export const Api = Object.freeze({
+  export const Api = {
     URL_STABLE: Urls.STABLE.slice(0, -1),
     URL_CANARY: Urls.CANARY.slice(0, -1),
     PATH: `/api/v${ApiVersion}`,
@@ -777,7 +777,7 @@ export module Discord {
       "/webhooks/:webhookId/:webhookToken/messages/:messageId",
     WEBHOOK_TOKEN_GITHUB: "/webhooks/:webhookId/:webhookToken/github",
     WEBHOOK_TOKEN_SLACK: "/webhooks/:webhookId/:webhookToken/slack",
-  });
+  };
 }
 export module NotSoPylon {
   export const LOCALHOST_API = "http://localhost";
@@ -788,7 +788,7 @@ export module NotSoPylon {
     STABLE = "https://notsobot.com/",
   }
 
-  export const Api = Object.freeze({
+  export const Api = {
     URL: LOCALHOST_API,
     URL_PUBLIC: Domains.BETA.slice(0, -1),
     PATH: "/api",
@@ -912,9 +912,9 @@ export module NotSoPylon {
     UTILITIES_QR_CREATE: "/utilities/qr/create",
     UTILITIES_QR_SCAN: "/utilities/qr/scan",
     UTILITIES_SCREENSHOT: "/utilities/screenshot",
-  });
+  };
 
-  export const CDN = Tools.URIEncodeWrap({
+  export const CDN = {
     URL: Domains.CDN.slice(0, -1),
 
     EMOJIS_APPLE: (codepoint: string) =>
@@ -926,10 +926,10 @@ export module NotSoPylon {
       `/twemoji/512x512/${codepoint}.png`,
     TWEMOJI_SVG: (codepoint: string): string =>
       `/twemoji/v13.0.1/${codepoint}.svg`,
-  });
+  };
 
-  export const CUSTOM = Tools.URIEncodeWrap({
+  export const CUSTOM = {
     STEAM_EMOJI: (name: string): string =>
       `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
-  });
+  };
 }

@@ -50,6 +50,9 @@ export type ExpandedGuildMember = ExpandedStructure & {
   joinedAtUnix: number;
   joinedAtTimestamp: Date;
   joinedAtAge: () => number;
+  premiumSinceUnix: number;
+  premiumSinceTimestamp: Date;
+  premiumSinceAge: () => number;
 };
 export function expandStructure<T>(
   a: T & { id: string }
@@ -66,6 +69,9 @@ export function expandStructure<T>(
       joinedAtAge: () => Date.now() - +new Date(a.joinedAt),
       joinedAtTimestamp: new Date(a.joinedAt),
       joinedAtUnix: +new Date(a.joinedAt),
+      premiumSinceAge: () => Date.now() - +new Date(a.premiumSince),
+      premiumSinceTimestamp: new Date(a.premiumSince),
+      premiumSinceUnix: +new Date(a.premiumSince),
     };
   }
   return <T & ExpandedStructure>data;

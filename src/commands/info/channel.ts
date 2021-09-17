@@ -1,4 +1,4 @@
-import { ChannelTypesText, Colors, commands } from "../../globals";
+import { ChannelTypesText, Colors, commands, DateOptions } from "../../globals";
 import * as Markup from "../../functions/markup";
 import { editOrReply, expandStructure } from "../../tools";
 import {
@@ -48,7 +48,9 @@ commands.on(
         const timestamp = expandStructure(channel);
         description.push(`**Created**: ${timestamp.age()}`);
         description.push(
-          `**->** ${Markup.spoiler(timestamp.createdAt.toLocaleString())}`
+          `**->** ${Markup.spoiler(
+            timestamp.createdAt.toLocaleString(undefined, DateOptions)
+          )}`
         );
       }
 

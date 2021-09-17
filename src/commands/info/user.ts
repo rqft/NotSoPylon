@@ -4,8 +4,8 @@ import { spoiler } from "../../functions/markup";
 import { Paginator } from "../../functions/paginator";
 import { commands, DateOptions, PresenceStatusColors } from "../../globals";
 import { Parameters } from "../../parameters";
-import { ExpandedGuildMember, expandStructure } from "../../tools";
-import { getLongAgoFormat } from "../../util";
+import { editOrReply, ExpandedGuildMember, expandStructure } from "../../tools";
+import { getLongAgoFormat, getMemberJoinPosition } from "../../util";
 
 commands.on(
   {
@@ -20,6 +20,7 @@ commands.on(
     const member = await Parameters.member(message, args.user);
     const user = await Parameters.user(message, args.user);
     const isMember = !!member;
+    const guild = await message.getGuild();
     const embed = new discord.Embed();
     embed.setAuthor({ name: user.getTag(), iconUrl: user.getAvatarUrl() });
     embed.setColor(PresenceStatusColors["offline"]);
@@ -104,17 +105,105 @@ commands.on(
           );
         }
 
-        if (member.guild) {
-          const [position, memberCount] = getMemberJoinPosition(
-            member.guild,
-            member.id
+        if (member.guildId) {
+          const [position, memberCount] = await getMemberJoinPosition(
+            guild,
+            member.user.id
           );
           description.push(
             `**Join Position**: ${position.toLocaleString()}/${memberCount.toLocaleString()}`
           );
         }
       }
-      embed.addField("Joined", description.join("\n"), true);
+      embed.addField({
+        name: "Joined",
+        value: description.join("\n"),
+        inline: true,
+      });
     }
+    if (member) {
+      const description: Array<string> = [];
+
+      if (member.premiumSince) {
+        const timestamp = <ExpandedGuildMember>(
+          expandStructure({ ...member, id: member.user.id })
+        );
+        description.push(
+          `**Boosting Since**: ${getLongAgoFormat(
+            timestamp.premiumSinceUnix,
+            2
+          )}`
+        );
+        description.push(
+          `**->** ${spoiler(
+            timestamp.premiumSinceTimestamp.toLocaleString(
+              undefined,
+              DateOptions
+            )
+          )}`
+        );
+      }
+      if (member.nick) {
+        description.push(`**Nickname**: ${member.nick}`);
+      }
+      if (member.user.id === guild.ownerId) {
+        description.push(`**Owner**: Yes`);
+      }
+      const roles = (
+        await Promise.all(member.roles.map((v) => guild.getRole(v)))
+      )
+        .sort((x, y) => x.position - y.position)
+        .map((role) => {
+          if (role.guildId === role.id) {
+            return `\`${role.name}\``;
+          }
+          return role.toMention();
+        });
+      let rolesText = `**Roles (${roles.length})**: ${roles.join(", ")}`;
+      if (800 < rolesText.length) {
+        const fromIndex = rolesText.length - (rolesText.length - 800 + 3);
+        const index = rolesText.lastIndexOf(",", fromIndex);
+        rolesText = rolesText.slice(0, index) + "...";
+      }
+      description.push(rolesText);
+
+      const voiceState = await guild.getVoiceState(member.user.id);
+      if (voiceState) {
+        description.push(
+          `**Voice**: ${(await voiceState.getChannel()).toMention()}`
+        );
+      }
+      embed.addField({ name: "Guild Specific", value: description.join("\n") });
+    }
+    // {
+    //   const description: Array<string> = [];
+
+    //   if (isMember) {
+    //     if (member.avatar) {
+    //       description.push(
+    //         Markup.url(Markup.bold("Guild Avatar"), member.avatarUrl)
+    //       );
+    //     }
+    //   }
+
+    //   if (userWithBanner.banner) {
+    //     embed.setImage(userWithBanner.bannerUrl!);
+    //     description.push(
+    //       Markup.url(
+    //         Markup.bold("User Banner"),
+    //         userWithBanner.bannerUrlFormat(null, { size: 512 })!
+    //       )
+    //     );
+    //   }
+
+    //   if (description.length) {
+    //     description.push(
+    //       Markup.url(Markup.bold("User Avatar"), user.avatarUrl)
+    //     );
+    //     embed.addField("Urls", description.sort().join(", "));
+    //   }
+    // }
+    return await editOrReply(message, embed);
   }
 );
+import {} from "node:crypto";
