@@ -1,4 +1,4 @@
-import { NotSoPylon } from "./endpoints";
+import { Discord, NotSoPylon } from "./endpoints";
 import { Regexes } from "./functions/markup";
 import {
   GuildFeature,
@@ -276,27 +276,12 @@ export function getMaxEmojis(guild: discord.Guild): number {
     : MAX_EMOJI_SLOTS;
   return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].emoji);
 }
-export enum Urls {
-  BLOG = "https://blog.discord.com/",
-  CANARY = "https://canary.discord.com/",
-  CDN = "https://cdn.discordapp.com/",
-  FEEDBACK = "https://feedback.discord.com/",
-  GIFT = "https://discord.gift/",
-  INVITE = "https://discord.gg/",
-  MEDIA = "https://media.discordapp.net/",
-  ROUTER = "https://router.discordapp.net/",
-  STABLE = "https://discord.com/",
-  STABLE_OLD = "https://discordapp.com/",
-  STATUS = "https://status.discord.com/",
-  SUPPORT = "https://support.discord.com/",
-  SUPPORT_DEV = "https://support-dev.discord.com/",
-  TEMPLATE = "https://discord.new/",
-}
+
 export const getGuildIcon = (
   guildId: string,
   hash: string,
   format: string = "png"
-): string => `${Urls.CDN}icons/${guildId}/${hash}.${format}`;
+): string => `${Discord.Urls.CDN}icons/${guildId}/${hash}.${format}`;
 export async function apiping(): Promise<{ gateway: number; rest: number }> {
   return {
     gateway: await latency(discord.getBotUser),
