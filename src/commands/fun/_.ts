@@ -1,0 +1,13 @@
+import './ascii';
+import './emoji';
+import './reversetext';
+import './tag.create';
+import './tag.show';
+import './tag.edit';
+import './tag.list';
+import './tag.random';
+import './tag.remove';
+import './tag.clear';
+import './wordcloud';
+import './sra.image';
+import './sra.fact';

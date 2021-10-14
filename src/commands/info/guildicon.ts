@@ -1,14 +1,14 @@
-import { Colors, commands } from "../../globals";
-import { editOrReply } from "../../tools";
-import { guildJumplink } from "../../util";
+import { Colors, commands } from '../../globals';
+import { editOrReply } from '../../tools';
+import { guildJumplink } from '../../util';
 
 commands.on(
   {
-    name: "guildicon",
-    description: "Get the icon for a guild, defaults to the current guild",
+    name: 'guildicon',
+    description: 'Get the icon for a guild, defaults to the current guild'
   },
-  (args) => ({}),
-  async (message, args) => {
+  (_) => ({}),
+  async (message) => {
     const guild = await discord.getGuild();
     if (guild.icon) {
       const iconUrl = guild.getIconUrl() as string;
@@ -17,7 +17,7 @@ commands.on(
       if (
         channel &&
         channel.canMember(
-          await guild.getMember(discord.getBotId()),
+          (await guild.getMember(discord.getBotId()))!,
           discord.Permissions.EMBED_LINKS
         )
       ) {
@@ -25,7 +25,7 @@ commands.on(
         embed.setAuthor({
           name: guild.name,
           iconUrl,
-          url: guildJumplink(guild.id),
+          url: guildJumplink(guild.id)
         });
         embed.setColor(Colors.BLURPLE);
         embed.setDescription(`[**Icon Url**](${guild.getIconUrl()})`);

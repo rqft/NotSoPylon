@@ -3,51 +3,66 @@ import {
   codestring,
   escape,
   spoiler,
-  url,
-} from "../../functions/markup";
+  url
+} from '../../functions/markup';
 import {
   Colors,
   commands,
   DateOptions,
-  VerificationLevelTexts,
-} from "../../globals";
-import { editOrReply, expandStructure, toTitleCase } from "../../tools";
+  VerificationLevelTexts
+} from '../../globals';
+import { editOrReply, expandStructure, toTitleCase } from '../../tools';
 import {
   channelJumplink,
   getAcronym,
   getGuildIcon,
   getLongAgoFormat,
-  guildJumplink,
-} from "../../util";
-import * as Endpoints from "../../endpoints";
-import { time } from "console";
+  guildJumplink
+} from '../../util';
+import * as Endpoints from '../../endpoints';
+import { Discord } from '../../endpoints';
+const INVITE_CODE_REGEX = /(?<=(?:https?:\/\/)?discord(?:(?:app)?\.com\/invite|\.gg)\/?)[a-zA-Z0-9]+(?=\/?)/gi;
+const INVITE_FILTER_REGEX = /(?:https?:\/\/)?discord(?:(?:app)?\.com\/invite|\.gg)\/?|\/?$/g;
 commands.on(
   {
-    name: "inviteinfo",
-    description: "Get information of a discord invite",
+    name: 'inviteinfo',
+    description: 'Get information of a discord invite'
   },
   (args) => ({
-    code: args.string(),
+    code: args.string()
   }),
   async (message, args) => {
     try {
-      const invite = await discord.getInvite(args.code, { withCounts: true });
+      const invite = await discord.getInvite(
+        args.code.replace(INVITE_FILTER_REGEX, ''),
+        { withCounts: true }
+      );
+      if (!invite)
+        return await editOrReply(
+          message,
+          `:warning: \`Invalid code '${args.code}'\``
+        );
       const embed = new discord.Embed();
       embed.setColor(Colors.BLURPLE);
       embed.setTitle(`discord.gg/${invite.code}`);
 
       const guild = await invite.getGuild();
-      const channel = await invite.getChannel();
+      if (!guild)
+        return await editOrReply(
+          message,
+          ':warning: `Unable to fetch guild from invite`'
+        );
+      const channel = (await invite.getChannel())!;
 
       if (guild) {
         embed.setAuthor({
           name: guild.name,
           iconUrl: getGuildIcon(
             guild.id,
-            guild.icon,
-            guild.icon.startsWith("a_") ? "gif" : undefined
+            guild.icon!,
+            guild.icon!.startsWith('a_') ? 'gif' : undefined
           ),
-          url: guildJumplink(guild.id),
+          url: guildJumplink(guild.id)
         });
       } else {
         embed.setAuthor({ name: channel.name, url: channelJumplink(channel) });
@@ -70,23 +85,23 @@ commands.on(
         description.push(`**Name**: ${escape.all(channel.name)}`);
         description.push(`**Type**: ${channel.type}`);
         embed.addField({
-          name: "Channel Information",
-          value: description.join("\n"),
-          inline: true,
+          name: 'Channel Information',
+          value: description.join('\n'),
+          inline: true
         });
       }
 
       if (guild) {
         if (guild.banner) {
-          embed.setThumbnail({ url: guild.getBannerUrl() });
+          embed.setThumbnail({ url: guild.getBannerUrl()! });
         } else {
           if (guild.icon) {
-            embed.setThumbnail({ url: guild.getIconUrl() });
+            embed.setThumbnail({ url: guild.getIconUrl()! });
           }
         }
 
         if (guild.splash) {
-          embed.setImage({ url: guild.getSplashUrl() });
+          embed.setImage({ url: guild.getSplashUrl()! });
         }
 
         if (guild.description) {
@@ -127,23 +142,23 @@ commands.on(
             );
           }
           description.push(
-            `**Verification Level**: ${
-              VerificationLevelTexts[guild.verificationLevel] || "Unknown"
-            }`
+            `**Verification Level**: ${VerificationLevelTexts[
+              guild.verificationLevel
+            ] || 'Unknown'}`
           );
 
           embed.addField({
-            name: "Guild Information",
-            value: description.join("\n"),
-            inline: true,
+            name: 'Guild Information',
+            value: description.join('\n'),
+            inline: true
           });
         }
 
         if (guild.features.length) {
           const description = guild.features.sort().map(toTitleCase);
           embed.addField({
-            name: "Features",
-            value: codeblock(description.join("\n")),
+            name: 'Features',
+            value: codeblock(description.join('\n'))
           });
         }
       }
@@ -168,14 +183,14 @@ commands.on(
           }
         }
 
-        embed.addField({ name: "Urls", value: description.sort().join(", ") });
+        embed.addField({ name: 'Urls', value: description.sort().join(', ') });
       }
 
       return editOrReply(message, { embed });
     } catch (error) {
       let msg: string;
       if (error && error instanceof discord.ApiError && error.code === 404) {
-        msg = "⚠ Unknown Invite";
+        msg = '⚠ Unknown Invite';
       } else {
         msg = `⚠ ${error}`;
       }

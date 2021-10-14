@@ -1,4 +1,4 @@
-import { codeblock, codestring } from "../../functions/markup";
+import { codeblock, codestring } from '../../functions/markup';
 import {
   BooleanEmojis,
   commands,
@@ -7,40 +7,40 @@ import {
   PermissionsText,
   PERMISSIONS_ADMIN,
   PERMISSIONS_TEXT,
-  PERMISSIONS_VOICE,
-} from "../../globals";
-import { Parameters } from "../../parameters";
+  PERMISSIONS_VOICE
+} from '../../globals';
+import { Parameters } from '../../parameters';
 import {
   editOrReply,
   expandStructure,
   intToHex,
   intToRGB,
-  padCodeBlockFromRows,
-} from "../../tools";
+  padCodeBlockFromRows
+} from '../../tools';
 import {
   asyncIteratorToArray,
   createColorUrl,
-  permissionsToObject,
-} from "../../util";
+  permissionsToObject
+} from '../../util';
 
 commands.on(
   {
-    name: "role",
-    description: "Get information for a role, defaults to the @everyone role",
+    name: 'role',
+    description: 'Get information for a role, defaults to the @everyone role'
   },
   (args) => ({
-    _role: args.stringOptional({ default: "@everyone" }),
-    channel: args.guildChannelOptional(),
+    _role: args.stringOptional({ default: '@everyone' }),
+    channel: args.guildChannelOptional()
   }),
   async (message, args) => {
-    const role = expandStructure(await Parameters.role(args._role, message));
+    const role = expandStructure((await Parameters.role(args._role, message))!);
     const channel = args.channel ?? (await message.getChannel());
-    const guild = await discord.getGuild(role.guildId);
+    const guild = (await discord.getGuild(role.guildId))!;
     const guildMembers = await asyncIteratorToArray(guild.iterMembers());
     const embed = new discord.Embed();
     embed.setAuthor({ name: role.name });
     embed.setDescription(
-      `Showing channel permissions for ${role.toMention()} in ${channel.toMention()}`
+      `Showing channel permissions for <@&${role.id}> in ${channel.toMention()}`
     );
     if (role.color) {
       embed.setColor(role.color);
@@ -61,15 +61,15 @@ commands.on(
         description.push(`**Color**: No Color`);
       }
       description.push(
-        `**Created**: ${role.createdAt.toLocaleString("en-US", DateOptions)}`
+        `**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`
       );
       description.push(
-        `**Default Role**: ${role.id === role.guildId ? "Yes" : "No"}`
+        `**Default Role**: ${role.id === role.guildId ? 'Yes' : 'No'}`
       );
-      description.push(`**Hoisted**: ${role.hoist ? "Yes" : "No"}`);
+      description.push(`**Hoisted**: ${role.hoist ? 'Yes' : 'No'}`);
       description.push(`**Id**: \`${role.id}\``);
-      description.push(`**Managed**: ${role.managed ? "Yes" : "No"}`);
-      description.push(`**Mentionable**: ${role.mentionable ? "Yes" : "No"}`);
+      description.push(`**Managed**: ${role.managed ? 'Yes' : 'No'}`);
+      description.push(`**Mentionable**: ${role.mentionable ? 'Yes' : 'No'}`);
       if (role.guildId) {
         const position =
           (await guild.getRoles())
@@ -98,9 +98,9 @@ commands.on(
       //   }
 
       embed.addField({
-        name: "Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Information',
+        value: description.join('\n'),
+        inline: true
       });
     }
 
@@ -111,14 +111,14 @@ commands.on(
       description.push(`Members: ${members.length.toLocaleString()}`);
       if (description.length) {
         embed.addField({
-          name: "Counts",
-          value: codeblock(description.join("\n"), { language: "css" }),
-          inline: true,
+          name: 'Counts',
+          value: codeblock(description.join('\n'), { language: 'css' }),
+          inline: true
         });
       }
     }
 
-    embed.addField({ name: "\u200b", value: "\u200b" });
+    embed.addField({ name: '\u200b', value: '\u200b' });
     {
       const permissions = permissionsToObject(channel.getRolePermissions(role));
 
@@ -130,16 +130,16 @@ commands.on(
           const can = permissions[key];
           rows.push([
             `${PermissionsText[key]}:`,
-            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`,
+            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`
           ]);
         }
 
         embed.addField({
-          name: "Moderation",
-          value: codeblock(padCodeBlockFromRows(rows).join("\n"), {
-            language: "css",
+          name: 'Moderation',
+          value: codeblock(padCodeBlockFromRows(rows).join('\n'), {
+            language: 'css'
           }),
-          inline: true,
+          inline: true
         });
       }
 
@@ -151,16 +151,16 @@ commands.on(
           const can = permissions[key];
           rows.push([
             `${PermissionsText[key]}:`,
-            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`,
+            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`
           ]);
         }
 
         embed.addField({
-          name: "Text",
-          value: codeblock(padCodeBlockFromRows(rows).join("\n"), {
-            language: "css",
+          name: 'Text',
+          value: codeblock(padCodeBlockFromRows(rows).join('\n'), {
+            language: 'css'
           }),
-          inline: true,
+          inline: true
         });
       } else if (channel instanceof discord.GuildVoiceChannel) {
         const rows: Array<Array<string>> = [];
@@ -170,16 +170,16 @@ commands.on(
           const can = permissions[key];
           rows.push([
             `${PermissionsText[key]}:`,
-            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`,
+            `${can ? BooleanEmojis.YES : BooleanEmojis.NO}`
           ]);
         }
 
         embed.addField({
-          name: "Voice",
-          value: codeblock(padCodeBlockFromRows(rows).join("\n"), {
-            language: "css",
+          name: 'Voice',
+          value: codeblock(padCodeBlockFromRows(rows).join('\n'), {
+            language: 'css'
           }),
-          inline: true,
+          inline: true
         });
       }
     }

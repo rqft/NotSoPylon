@@ -1,106 +1,153 @@
-import { time } from "console";
-import * as exp from "constants";
-import { spoiler } from "../../functions/markup";
-import { Paginator } from "../../functions/paginator";
-import { commands, DateOptions, PresenceStatusColors } from "../../globals";
-import { Parameters } from "../../parameters";
-import { editOrReply, ExpandedGuildMember, expandStructure } from "../../tools";
-import { getLongAgoFormat, getMemberJoinPosition } from "../../util";
-
+import config from '../../config';
+import { spoiler } from '../../functions/markup';
+import {
+  commands,
+  DateOptions,
+  DiscordEmojis,
+  DiscordUserFlags,
+  PresenceStatusColors
+} from '../../globals';
+import { Parameters } from '../../parameters';
+import {
+  editOrReply,
+  ExpandedGuildMember,
+  ExpandedStructure,
+  expandStructure
+} from '../../tools';
+import { getLongAgoFormat, getMemberJoinPosition } from '../../util';
+interface DiscardUserProfile {
+  connected_accounts: Array<unknown>;
+  premium_guild_since?: string;
+  premium_since?: string;
+  user: DiscardUser;
+  discard: {
+    settings: number;
+    role: number;
+  };
+}
+interface DiscardUser {
+  status?: string;
+  username: string;
+  avatar?: string;
+  banner?: string;
+  bio?: string;
+  discriminator: string;
+  flags: number;
+  id: string;
+}
 commands.on(
   {
-    name: "user",
-    aliases: ["userinfo", "member", "memberinfo"],
-    description: "Get information about a user, defaults to self",
+    name: 'user',
+    aliases: ['userinfo', 'member', 'memberinfo'],
+    description: 'Get information about a user, defaults to self'
   },
   (args) => ({
-    user: args.string(),
+    user: args.stringOptional()
   }),
   async (message, args) => {
-    const member = await Parameters.member(message, args.user);
-    const user = await Parameters.user(message, args.user);
+    const member = await Parameters.member(
+      message,
+      args.user || message.member.user.id
+    );
+    const user = await Parameters.user(
+      message,
+      args.user || message.member.user.id
+    );
+    if (!user) return await editOrReply(message, ':warning: `User not found`');
+    const discardUser: DiscardUserProfile = await (
+      await fetch(
+        'https://test.discard.cc/api/v0/users/' + user.id + '/profile',
+        {
+          headers: {
+            Authorization: config.keys.discard_cc
+          }
+        }
+      )
+    ).json();
     const isMember = !!member;
     const guild = await message.getGuild();
     const embed = new discord.Embed();
     embed.setAuthor({ name: user.getTag(), iconUrl: user.getAvatarUrl() });
-    embed.setColor(PresenceStatusColors["offline"]);
+    embed.setColor(
+      PresenceStatusColors[
+        member ? (await member.getPresence()).status : 'offline'
+      ]
+    );
     embed.setDescription(user.toMention());
     embed.setThumbnail({ url: user.getAvatarUrl() });
     {
       const description: Array<string> = [];
-      // {
-      //   const badges: Array<string> = [];
-      //   for (let key in DiscordEmojis.DISCORD_BADGES) {
-      //     if (user.hasFlag(parseInt(key))) {
-      //       badges.push((DiscordEmojis.DISCORD_BADGES as any)[key]);
-      //     }
-      //   }
-      //   if (badges.length) {
-      //     description.push(`**Badges**: ${badges.join(" ")}`);
-      //   }
-      // }
-      // if (userWithBanner.accentColor !== null) {
-      //   const color = intToRGB(userWithBanner.accentColor);
-      //   const hex = Markup.codestring(
-      //     intToHex(userWithBanner.accentColor, true)
-      //   );
-      //   const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
-      //   description.push(`**Banner Color**: ${hex} ${rgb}`);
-      // }
-      description.push(`**Bot**: ${user.bot ? "Yes" : "No"}`);
+      {
+        const badges: Array<string> = [];
+        for (let key in DiscordEmojis.DISCORD_BADGES) {
+          if ((BigInt(discardUser.user.flags) & BigInt(key)) === BigInt(key)) {
+            badges.push(DiscordEmojis.DISCORD_BADGES[key]);
+          }
+        }
+        if (badges.length) {
+          description.push(`**Badges**: ${badges.join(' ')}`);
+        }
+      }
+
+      description.push(`**Bot**: ${user.bot ? 'Yes' : 'No'}`);
       description.push(`**Id**: \`${user.id}\``);
-      //   if (user.system) {
-      //     description.push(`**System**: Yes`);
-      //   }
-      //   {
-      //     let tag: string | undefined;
-      //     if (user.system) {
-      //       tag = DiscordEmojis.DISCORD_TAG_SYSTEM;
-      //     } else if (user.bot) {
-      //       if (user.hasVerifiedBot) {
-      //         tag = DiscordEmojis.DISCORD_TAG_BOT;
-      //       } else {
-      //         tag = DiscordEmojis.DISCORD_TAG_BOT;
-      //       }
-      //     }
-      //     if (tag) {
-      //       description.push(`**Tag**: ${tag}`);
-      //     }
-      //   }
+      const isSystem =
+        (BigInt(discardUser.user.flags) & BigInt(DiscordUserFlags.SYSTEM)) ===
+        BigInt(DiscordUserFlags.SYSTEM);
+      const isVerifiedBot =
+        (BigInt(discardUser.user.flags) &
+          BigInt(DiscordUserFlags.VERIFIED_BOT)) ===
+        BigInt(DiscordUserFlags.VERIFIED_BOT);
+      if (isSystem) {
+        description.push(`**System**: Yes`);
+      }
+      {
+        let tag: string | undefined;
+        if (isSystem) {
+          tag = DiscordEmojis.DISCORD_TAG_SYSTEM;
+        } else if (user.bot) {
+          if (isVerifiedBot) {
+            tag = DiscordEmojis.DISCORD_TAG_BOT;
+          } else {
+            tag = DiscordEmojis.DISCORD_TAG_BOT;
+          }
+        }
+        if (tag) {
+          description.push(`**Tag**: ${tag}`);
+        }
+      }
       embed.addField({
-        name: "Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Information',
+        value: description.join('\n'),
+        inline: true
       });
     }
 
     {
       const description: Array<string> = [];
       {
-        const timestamp = expandStructure(user);
+        const timestamp = expandStructure(user!) as ExpandedStructure;
         description.push(
           `**Discord**: ${getLongAgoFormat(timestamp.createdAtUnix, 2)}`
         );
         description.push(
           `**->** ${spoiler(
-            timestamp.createdAt.toLocaleDateString(undefined, DateOptions)
+            timestamp.createdAt.toLocaleString(undefined, DateOptions)
           )}`
         );
       }
       if (isMember && new Date(member.joinedAt)) {
         {
-          const timestamp = <ExpandedGuildMember>(
-            expandStructure({ ...member, id: member.user.id })
-          );
+          const timestamp = expandStructure({
+            ...member,
+            id: member.user.id
+          }) as ExpandedGuildMember;
           description.push(
             `**Guild**: ${getLongAgoFormat(timestamp.joinedAtUnix, 2)}`
           );
           description.push(
             `**->** ${spoiler(
-              timestamp.joinedAtTimestamp.toLocaleDateString(
-                undefined,
-                DateOptions
-              )
+              timestamp.joinedAtTimestamp.toLocaleString(undefined, DateOptions)
             )}`
           );
         }
@@ -116,18 +163,19 @@ commands.on(
         }
       }
       embed.addField({
-        name: "Joined",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Joined',
+        value: description.join('\n'),
+        inline: true
       });
     }
     if (member) {
       const description: Array<string> = [];
 
       if (member.premiumSince) {
-        const timestamp = <ExpandedGuildMember>(
-          expandStructure({ ...member, id: member.user.id })
-        );
+        const timestamp = expandStructure({
+          ...member,
+          id: member.user.id
+        }) as ExpandedGuildMember;
         description.push(
           `**Boosting Since**: ${getLongAgoFormat(
             timestamp.premiumSinceUnix,
@@ -152,28 +200,28 @@ commands.on(
       const roles = (
         await Promise.all(member.roles.map((v) => guild.getRole(v)))
       )
-        .sort((x, y) => x.position - y.position)
+        .sort((x, y) => x!.position - y!.position)
         .map((role) => {
-          if (role.guildId === role.id) {
-            return `\`${role.name}\``;
+          if (role!.guildId === role!.id) {
+            return `\`${role!.name}\``;
           }
-          return role.toMention();
+          return role!.toMention();
         });
-      let rolesText = `**Roles (${roles.length})**: ${roles.join(", ")}`;
+      let rolesText = `**Roles (${roles.length})**: ${roles.join(', ')}`;
       if (800 < rolesText.length) {
         const fromIndex = rolesText.length - (rolesText.length - 800 + 3);
-        const index = rolesText.lastIndexOf(",", fromIndex);
-        rolesText = rolesText.slice(0, index) + "...";
+        const index = rolesText.lastIndexOf(',', fromIndex);
+        rolesText = rolesText.slice(0, index) + '...';
       }
       description.push(rolesText);
 
       const voiceState = await guild.getVoiceState(member.user.id);
       if (voiceState) {
         description.push(
-          `**Voice**: ${(await voiceState.getChannel()).toMention()}`
+          `**Voice**: ${(await voiceState.getChannel())!.toMention()}`
         );
       }
-      embed.addField({ name: "Guild Specific", value: description.join("\n") });
+      embed.addField({ name: 'Guild Specific', value: description.join('\n') });
     }
     // {
     //   const description: Array<string> = [];
@@ -206,4 +254,3 @@ commands.on(
     return await editOrReply(message, embed);
   }
 );
-import {} from "node:crypto";

@@ -1,11 +1,23 @@
-import { Timezones } from "./globals";
-
+import { Timezones } from './globals';
+export const TAG_KV = new pylon.KVNamespace('tags');
 const config = {
-  prefix: ".",
-  timezone: "America/Chicago" as Timezones,
+  prefixes: ['.', 'use '],
+
+  clientOwners: ['504698587221852172'],
+  timezone: 'America/Chicago' as Timezones,
   storage: {
-    channelId: "1234567812345678",
-    identifier: `store-{rand} {filename}`,
+    channelId: '888962409144909876',
+    identifier: `store-:rand: :filename:`
   },
+  keys: {
+    imagga:
+      '', 
+    // qr_generator:
+    //   '' //private
+    pxl_api: '', //private
+    imgix: '', //private
+    discard_cc:
+      '' //private
+  }
 };
 export default config;

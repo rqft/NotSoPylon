@@ -1,6 +1,8 @@
-import { Discord, NotSoPylon } from "./endpoints";
-import { Regexes } from "./functions/markup";
+import { NotSoPylon } from './endpoints';
+import { codeblock, Regexes } from './functions/markup';
 import {
+  EmbedBrands,
+  EmbedColors,
   GuildFeature,
   LocalesText,
   MAX_ATTACHMENT_SIZE,
@@ -10,9 +12,15 @@ import {
   Permissions,
   PremiumGuildLimits,
   PremiumGuildTiers,
-  timeMap,
-} from "./globals";
-import { intToHex } from "./tools";
+  timeMap
+} from './globals';
+import { Tag, TagEmbedThumbnails } from './functions/tag';
+import {
+  formatMemory,
+  formatPercentageAsBar,
+  inOutAttachment,
+  intToHex
+} from './tools';
 
 export async function asyncIteratorToArray<T>(
   iterator: AsyncIterableIterator<T>
@@ -34,8 +42,49 @@ export function createUserEmbed(
   embed.setAuthor({
     name: user.getTag(),
     iconUrl: user.getAvatarUrl(),
-    url: `https://discord.com/users/${user.id}`,
+    url: `https://discord.com/users/${user.id}`
   });
+  return embed;
+}
+export async function createImageEmbed(
+  image:
+    | ArrayBuffer
+    | discord.Message.IMessageAttachment
+    | discord.Message.IOutgoingMessageAttachment
+    | string
+    | URL,
+  context: discord.GuildMemberMessage,
+  name?: string
+) {
+  let storedAs;
+  if (typeof image === 'string') image = new URL(image);
+  if (image instanceof URL) {
+    image = await (await fetch(image.href)).arrayBuffer();
+  }
+  if (image instanceof ArrayBuffer) {
+    image = { name: 'image.png', data: image };
+  }
+  if (!('height' in image)) {
+    const img = await inOutAttachment(
+      image as discord.Message.IOutgoingMessageAttachment
+    );
+    storedAs = img.rand;
+    image = img.attachment;
+  }
+  let filename = '';
+  if (name) filename = name;
+  else if (image.filename) filename = image.filename;
+  else filename = `edited-image.${getFileExtension(image)}`;
+
+  const embed = createUserEmbed(context.author);
+  embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
+
+  embed.setImage({ url: image.url });
+  let footer = `${filename}, ${image.width}x${image.height}`;
+  if (getFileExtension(image) === discord.ImageType.GIF)
+    footer = `${footer}, ${formatMemory(image.size)}`;
+  if (storedAs) footer = `${footer}, stored as ${storedAs}`;
+  embed.setFooter({ text: footer });
   return embed;
 }
 
@@ -43,7 +92,7 @@ export function formatEmoji(
   emoji: discord.Emoji | discord.Presence.IActivityEmoji
 ) {
   return emoji.id
-    ? `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`
+    ? `<${emoji.animated ? 'a' : ''}:${emoji.name}:${emoji.id}>`
     : emoji.name;
 }
 export function emojiToUrl(
@@ -52,7 +101,7 @@ export function emojiToUrl(
   size?: number
 ) {
   if (!emoji.id) {
-    throw new Error("Cannot get a URL of a standard Emoji.");
+    throw new Error('Cannot get a URL of a standard Emoji.');
   }
   if (!format) {
     if (emoji.animated) format = discord.ImageType.GIF;
@@ -65,31 +114,31 @@ export function emojiToUrl(
     );
   }
   return `https://cdn.discordapp.com/emojis/${emoji.id}.${format}${
-    size ? `?size=${size}` : ""
+    size ? `?size=${size}` : ''
   }`;
 }
 export function activityToTypeText(activity: discord.Presence.IActivity) {
   switch (activity.type) {
     case discord.Presence.ActivityType.GAME:
-      return "Playing";
+      return 'Playing';
     case discord.Presence.ActivityType.STREAMING:
-      return "Streaming";
+      return 'Streaming';
     case discord.Presence.ActivityType.LISTENING:
-      return "Listening to";
+      return 'Listening to';
     case discord.Presence.ActivityType.WATCHING:
-      return "Watching";
+      return 'Watching';
     case discord.Presence.ActivityType.CUSTOM:
-      return "";
+      return '';
   }
-  return "Unknown";
+  return 'Unknown';
 }
 export enum ActivityPlatformTypes {
-  ANDROID = "android",
-  DESKTOP = "desktop",
-  EMBEDDED = "embedded",
-  IOS = "ios",
-  SAMSUNG = "samsung",
-  XBOX = "xbox",
+  ANDROID = 'android',
+  DESKTOP = 'desktop',
+  EMBEDDED = 'embedded',
+  IOS = 'ios',
+  SAMSUNG = 'samsung',
+  XBOX = 'xbox'
 }
 export interface FormatTimeOptions {
   day?: boolean;
@@ -112,7 +161,7 @@ export function formatTime(
   minutes %= 60;
   hours %= 24;
 
-  const daysStr = days ? `${days}d` : "";
+  const daysStr = days ? `${days}d` : '';
   const hoursStr = `0${hours}`.slice(-2);
   const minutesStr = `0${minutes}`.slice(-2);
   const secondsStr = `0${seconds}`.slice(-2);
@@ -158,6 +207,15 @@ export function getTotalTime(
   }
   return 0;
 }
+export function getTimeline(
+  timestamps: discord.Presence.IActivityTimestamps,
+  bars: number
+) {
+  return formatPercentageAsBar(getElapsedTime(timestamps), {
+    total: getTotalTime(timestamps),
+    bars
+  });
+}
 export function emojiIdentifier(emoji: discord.Emoji) {
   if (emoji.id) {
     return `${emoji.name}:${emoji.id}`;
@@ -168,7 +226,7 @@ export function parseFlagArguments(
   argument: string,
   flags: { [key: string]: string }
 ) {
-  argument.split(" ");
+  argument.split(' ');
 }
 
 export function getLongAgoFormat(
@@ -212,35 +270,38 @@ export function getLongAgoFormat(
       //     if (languageMap[keyLang] === key)
       //       cc = i18n.language.time_units.ti_full.plural[keyLang];
       //   }
-      cc += "s";
+      cc += 's';
     }
     cc = `${cc.substr(0, 1).toUpperCase()}${cc.substr(1).toLowerCase()}`;
     txtret.push(`${value} ${cc}`);
     runsc += 1;
   }
-  return txtret.join(", ");
+  return txtret.join(', ');
 }
 export function guildJumplink(guildId?: string) {
-  return `https://discord.com/channels/${guildId || "@me"}`;
+  return `https://discord.com/channels/${guildId || '@me'}`;
 }
 export function channelJumplink(
   channel: discord.Channel | discord.Invite.ChannelData,
   guildId?: string
 ) {
-  guildId ??= channel instanceof discord.GuildChannel ? channel.guildId : "@me";
+  guildId =
+    guildId ??
+    (channel instanceof discord.GuildChannel ? channel.guildId : '@me');
   return guildJumplink(guildId) + `/${channel.id}`;
 }
 export function getAcronym(name?: string): string {
   if (name != null) {
-    return name.replace(/\w+/g, (match) => match[0]).replace(/\s/g, "");
+    return name.replace(/\w+/g, (match) => match[0]).replace(/\s/g, '');
   }
-  return "";
+  return '';
 }
 export function preferredLocaleText(guild: discord.Guild): string {
   if (guild.preferredLocale in LocalesText) {
-    return LocalesText[this.preferredLocale];
+    // @ts-ignore
+    return LocalesText[guild.preferredLocale];
   }
-  return "";
+  return '';
 }
 
 export function guildHasFeature(guild: discord.Guild, feature: GuildFeature) {
@@ -258,7 +319,7 @@ export function getMaxAttachmentSize(guild: discord.Guild): number {
   const max = MAX_ATTACHMENT_SIZE;
   return Math.max(
     max,
-    (PremiumGuildLimits as any)[guild.premiumTier].attachment
+    (PremiumGuildLimits as any)[guild.premiumTier || 0].attachment
   );
 }
 
@@ -267,25 +328,46 @@ export function getMaxBitrate(guild: discord.Guild): number {
   if (guildHasFeature(guild, GuildFeature.VIP_REGIONS)) {
     max = (PremiumGuildLimits as any)[PremiumGuildTiers.TIER_3].bitrate;
   }
-  return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].bitrate);
+  return Math.max(
+    max,
+    (PremiumGuildLimits as any)[guild.premiumTier || 0].bitrate
+  );
 }
 
 export function getMaxEmojis(guild: discord.Guild): number {
   const max = guildHasFeature(guild, GuildFeature.MORE_EMOJI)
     ? MAX_EMOJI_SLOTS_MORE
     : MAX_EMOJI_SLOTS;
-  return Math.max(max, (PremiumGuildLimits as any)[guild.premiumTier].emoji);
+  return Math.max(
+    max,
+    (PremiumGuildLimits as any)[guild.premiumTier || 0].emoji
+  );
 }
-
+export enum Urls {
+  BLOG = 'https://blog.discord.com/',
+  CANARY = 'https://canary.discord.com/',
+  CDN = 'https://cdn.discordapp.com/',
+  FEEDBACK = 'https://feedback.discord.com/',
+  GIFT = 'https://discord.gift/',
+  INVITE = 'https://discord.gg/',
+  MEDIA = 'https://media.discordapp.net/',
+  ROUTER = 'https://router.discordapp.net/',
+  STABLE = 'https://discord.com/',
+  STABLE_OLD = 'https://discordapp.com/',
+  STATUS = 'https://status.discord.com/',
+  SUPPORT = 'https://support.discord.com/',
+  SUPPORT_DEV = 'https://support-dev.discord.com/',
+  TEMPLATE = 'https://discord.new/'
+}
 export const getGuildIcon = (
   guildId: string,
   hash: string,
-  format: string = "png"
-): string => `${Discord.Urls.CDN}icons/${guildId}/${hash}.${format}`;
+  format: string = 'png'
+): string => `${Urls.CDN}icons/${guildId}/${hash}.${format}`;
 export async function apiping(): Promise<{ gateway: number; rest: number }> {
   return {
     gateway: await latency(discord.getBotUser),
-    rest: await latency(discord.getGuild),
+    rest: await latency(discord.getGuild)
   };
 }
 export async function latency(cb: (...a: any) => any) {
@@ -304,28 +386,31 @@ export interface RouteParameters {
   [key: string]: any;
 }
 export const PathReplacementRegexp = /:(\w+):?/g;
-export function replacePathParameters(
+export function replace(
   path: string,
-  parameters: RouteParameters = {}
+  parameters: Record<string, any> = {},
+  enc: boolean = true
 ): string {
   return path.replace(PathReplacementRegexp, (match: string, key: string) => {
     if (key in parameters) {
-      return encodeURIComponent(String(parameters[key]));
+      return enc
+        ? encodeURIComponent(String(parameters[key]))
+        : String(parameters[key]);
     }
     return match;
   });
 }
 
-export function createColorUrl(color: number): string {
-  return replacePathParameters(
+export function createColorUrl(color: number, size: number = 100): string {
+  return replace(
     NotSoPylon.Api.URL_PUBLIC +
       NotSoPylon.Api.PATH +
       NotSoPylon.Api.IMAGE_CREATE_COLOR_HEX,
     {
-      format: "png",
-      height: 2,
+      format: 'png',
+      height: size,
       hex: intToHex(color),
-      width: 2,
+      width: size
     }
   );
 }
@@ -339,26 +424,26 @@ export function checkPermissions(
   permissions: bigint | number,
   check: PermissionChecks
 ): boolean {
-  if (typeof permissions !== "number" && typeof permissions !== "bigint") {
-    throw new Error("Permissions has to be an integer");
+  if (typeof permissions !== 'number' && typeof permissions !== 'bigint') {
+    throw new Error('Permissions has to be an integer');
   }
 
   permissions = BigInt(permissions);
   switch (typeof check) {
-    case "bigint": {
+    case 'bigint': {
       return (permissions & check) === check;
     }
-    case "number": {
+    case 'number': {
       return checkPermissions(permissions, BigInt(check));
     }
-    case "object":
+    case 'object':
       {
         if (Array.isArray(check)) {
           return check.every((value) => checkPermissions(permissions, value));
         }
       }
       break;
-    case "string": {
+    case 'string': {
       check = check.toUpperCase();
       if (check in Permissions) {
         return checkPermissions(
@@ -372,14 +457,14 @@ export function checkPermissions(
   }
 
   throw new Error(
-    "Only a string, integer, or an array of strings/integers are allowed to check with."
+    'Only a string, integer, or an array of strings/integers are allowed to check with.'
   );
 }
 export function permissionsToObject(
   permissions: bigint | number
 ): Record<string, boolean> {
   const result: Record<string, boolean> = {};
-  for (let check of Object.values(Permissions)) {
+  for (let check of Object.values<PermissionChecks>(Permissions)) {
     if (check === Permissions.NONE) {
       continue;
     }
@@ -390,51 +475,24 @@ export function permissionsToObject(
 export function getFileExtension(
   file: discord.Message.IMessageAttachment
 ): string {
-  const filename = file.filename.split(".");
+  const filename = file.filename.split('.');
   if (filename.length) {
-    return <string>filename.pop();
+    return filename.pop() || '';
   }
-  return "";
+  return '';
 }
 export function splitTextToDiscordHandle(
   text: string
 ): [string, string | null] {
-  const parts = text.split("#");
+  const parts = text.split('#');
   const username = (parts.shift() as string).slice(0, 32).toLowerCase();
   let discriminator: null | string = null;
   if (parts.length) {
-    discriminator = (parts.shift() as string).padStart(4, "0");
+    discriminator = (parts.shift() as string).padStart(4, '0');
   }
   return [username, discriminator];
 }
-export interface EmojiResponse {
-  url: string;
-  type: "twemoji" | "custom";
-  id: string;
-}
-export function findEmoji(emoj: string): EmojiResponse | undefined {
-  emoj = emoj.toLowerCase();
-  if (![Regexes.EMOJI, Regexes.UNICODE_EMOJI].some((v) => v.test(emoj)))
-    return undefined;
-  var url: string, type: "twemoji" | "custom", id: string;
-  if (!emoj!.replace(/\D/g, "")) {
-    const hex = emoj!.codePointAt(0)!.toString(16);
-    const result = "0000".substring(0, 4 - hex.length) + hex;
-    url = `https://cdn.notsobot.com/twemoji/512x512/${result}.png`;
-    type = "twemoji";
-  } else {
-    url = `https://cdn.discordapp.com/emojis/${emoj?.replace(/\D/g, "")}.${
-      emoj?.startsWith("<a:") ? "gif" : "png"
-    }`;
-    type = "custom";
-    id = emoj?.replace(/\D/g, "");
-  }
-  return {
-    url,
-    type,
-    id,
-  };
-}
+
 export async function getMemberJoinPosition(
   guild: discord.Guild,
   userId: string
@@ -447,4 +505,56 @@ export async function getMemberJoinPosition(
   }
   const joinPosition = members.findIndex((m) => m.user.id === userId) + 1;
   return [joinPosition, guild.memberCount];
+}
+export function toUrlParams(obj: object) {
+  return `?${Object.entries(obj)
+    .filter((v) => v !== undefined && v !== null)
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&')}`;
+}
+export function splitTextByAmount(
+  text: string,
+  amount: number,
+  character = '\n'
+): Array<string> {
+  const parts: Array<string> = [];
+
+  if (character) {
+    const split = text.split(character);
+    if (split.length === 1) {
+      return split;
+    }
+    while (split.length) {
+      let newText: string = '';
+      while (newText.length < amount && split.length) {
+        const part = split.shift()!;
+        if (part) {
+          if (amount < newText.length + part.length + 2) {
+            split.unshift(part);
+            break;
+          }
+          newText += part + '\n';
+        }
+      }
+      parts.push(newText);
+    }
+  } else {
+    while (text.length) {
+      parts.push(text.slice(0, amount));
+      text = text.slice(amount);
+    }
+  }
+  return parts;
+}
+export async function createTagEmbed(message: discord.Message, tag: Tag) {
+  const embed = createUserEmbed(message.author);
+  embed.setTitle(`Showing tag ${tag.name}`);
+  embed.setColor(EmbedColors.DEFAULT);
+  embed.setFooter({
+    text: `Tag created by ${(await discord.getUser(tag.userId))!.getTag()}`,
+    iconUrl: EmbedBrands.NOTSOBOT
+  });
+  embed.setThumbnail({ url: TagEmbedThumbnails['show'] });
+  embed.setDescription(codeblock(tag.content.slice(0, 500)));
+  return embed;
 }

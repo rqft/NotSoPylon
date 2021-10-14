@@ -1,5 +1,5 @@
-import { EmbeddableRegexes, MessageEmbedTypes, TRUSTED_URLS } from "../globals";
-import { getFileExtension } from "../util";
+import { EmbeddableRegexes, MessageEmbedTypes, TRUSTED_URLS } from '../globals';
+import { getFileExtension } from '../util';
 
 export function findImageUrlInMessages(
   messages: Array<discord.GuildMemberMessage>
@@ -48,7 +48,7 @@ export function findImageUrlInEmbed(
     // try to use our own unfurler for the url since it'll use the thumbnail
     // imgur returns the .gif image in thumbnail, so check if that ends with .gif
     const url = findImageUrlInEmbed(embed, true);
-    if (url && url.endsWith(".gif")) {
+    if (url && url.endsWith('.gif')) {
       return url;
     }
     if (embed.url) {
@@ -82,7 +82,7 @@ export function findImageUrlInEmbed(
   }
   const { video } = embed;
   if (video && video.url && (video.height || video.width)) {
-    return video.url + "?format=png";
+    return video.url + '?format=png';
   }
   return null;
 }
@@ -99,7 +99,7 @@ export function findImageUrlInAttachment(
       }
       return attachment.proxyUrl;
     } else if (!!EmbeddableRegexes.video.exec(getFileExtension(attachment))) {
-      return attachment.proxyUrl + "?format=png";
+      return attachment.proxyUrl + '?format=png';
     }
   }
   return null;

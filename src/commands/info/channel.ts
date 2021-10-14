@@ -1,29 +1,30 @@
-import { ChannelTypesText, Colors, commands, DateOptions } from "../../globals";
-import * as Markup from "../../functions/markup";
-import { editOrReply, expandStructure } from "../../tools";
+import { ChannelTypesText, Colors, commands, DateOptions } from '../../globals';
+import * as Markup from '../../functions/markup';
+import { editOrReply, expandStructure } from '../../tools';
 import {
   asyncIteratorToArray,
   channelJumplink,
-  guildJumplink,
-} from "../../util";
-import { codeblock } from "../../functions/markup";
+  guildJumplink
+} from '../../util';
+import { codeblock } from '../../functions/markup';
 commands.on(
   {
-    name: "channel",
-    aliases: ["channelinfo"],
+    name: 'channel',
+    aliases: ['channelinfo'],
     description:
-      "Get information for a channel, defaults to the current channel",
+      'Get information for a channel, defaults to the current channel'
   },
   (args) => ({
-    payload: args.guildChannelOptional(),
+    payload: args.guildChannelOptional()
   }),
   async (message, args) => {
-    const channel: discord.GuildChannel = args.payload;
+    const channel: discord.GuildChannel =
+      args.payload || (await message.getChannel()!);
     const channels = await (await message.getGuild()).getChannels();
     const embed = new discord.Embed();
     embed.setAuthor({
       name: `#${channel.name}`,
-      url: `https://discord.com/channels/${channel.guildId}/${channel.id}`,
+      url: `https://discord.com/channels/${channel.guildId}/${channel.id}`
     });
     embed.setColor(Colors.BLURPLE);
     {
@@ -35,10 +36,10 @@ commands.on(
         channel instanceof discord.GuildTextChannel ||
         channel instanceof discord.GuildNewsChannel
       ) {
-        description.push("");
-        description.push(channel.topic);
+        description.push('');
+        description.push(channel.topic ?? 'No Topic');
       }
-      embed.setDescription(description.join("\n"));
+      embed.setDescription(description.join('\n'));
     }
 
     {
@@ -78,13 +79,13 @@ commands.on(
         description.push(`**Position**: ${channel.position.toLocaleString()}`);
       }
       description.push(
-        `**Type**: ${ChannelTypesText[channel.type] || "Unknown"}`
+        `**Type**: ${ChannelTypesText[channel.type] || 'Unknown'}`
       );
 
       embed.addField({
-        name: "Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Information',
+        value: description.join('\n'),
+        inline: true
       });
     }
     if (channel instanceof discord.GuildTextChannel) {
@@ -113,7 +114,7 @@ commands.on(
       //   );
       // }
       if (channel instanceof discord.GuildChannel) {
-        description.push(`**NSFW**: ${channel.nsfw ? "Yes" : "No"}`);
+        description.push(`**NSFW**: ${channel.nsfw ? 'Yes' : 'No'}`);
         if (channel.rateLimitPerUser) {
           description.push(
             `*Ratelimit**: ${channel.rateLimitPerUser.toLocaleString()} seconds`
@@ -124,9 +125,9 @@ commands.on(
       }
 
       embed.addField({
-        name: "Text Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Text Information',
+        value: description.join('\n'),
+        inline: true
       });
     } else if (channel instanceof discord.GuildVoiceChannel) {
       const description: Array<string> = [];
@@ -136,7 +137,7 @@ commands.on(
       );
       description.push(
         `**User Limit**: ${
-          channel.userLimit ? channel.userLimit.toLocaleString() : "Unlimited"
+          channel.userLimit ? channel.userLimit.toLocaleString() : 'Unlimited'
         }`
       );
 
@@ -158,9 +159,9 @@ commands.on(
       // }
 
       embed.addField({
-        name: "Voice Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Voice Information',
+        value: description.join('\n'),
+        inline: true
       });
     }
     // uncomment when Spencer finishes BYOB
@@ -224,12 +225,10 @@ commands.on(
         channel instanceof discord.GuildVoiceChannel ||
         channel instanceof discord.GuildStageVoiceChannel
       ) {
-        description.push("");
+        description.push('');
         const voiceStates = await asyncIteratorToArray(
-          (
-            await discord.getGuild()
-          ).iterVoiceStates({
-            channelId: channel.id,
+          (await discord.getGuild()).iterVoiceStates({
+            channelId: channel.id
           })
         );
         const membersAmount = voiceStates.length;
@@ -249,8 +248,8 @@ commands.on(
 
       if (description.length) {
         embed.addField({
-          name: "Counts",
-          value: codeblock(description.join("\n"), { language: "css" }),
+          name: 'Counts',
+          value: codeblock(description.join('\n'), { language: 'css' })
         });
       }
     }
@@ -272,8 +271,8 @@ commands.on(
       //   description.push(`[**Last Message**](${Endpoints.Routes.URL + route})`);
       // }
 
-      embed.addField({ name: "Urls", value: description.join(", ") });
+      embed.addField({ name: 'Urls', value: description.join(', ') });
     }
-    return editOrReply(message, { embed });
+    return await editOrReply(message, embed);
   }
 );

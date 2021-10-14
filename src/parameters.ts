@@ -1,9 +1,14 @@
-import { findEmoji, isSnowflake, asyncIteratorToArray } from "./util";
-import { regex as discordRegex, DiscordRegexNames } from "./globals";
-import { findImageUrlInMessages } from "./functions/findImage";
+import { isSnowflake, asyncIteratorToArray } from './util';
+import {
+  regex as discordRegex,
+  DiscordRegexNames,
+  colorStrings,
+  Regex
+} from './globals';
+import { findImageUrlInMessages } from './functions/findImage';
 
-import { Discord } from "./endpoints";
-import { inOutAttachment } from "./tools";
+import { Discord } from './endpoints';
+import { hexToInt, inOutAttachment, rgbToInt, validateUrl } from './tools';
 export module Parameters {
   export async function role(
     value: string,
@@ -52,6 +57,10 @@ export module Parameters {
     context: discord.GuildMemberMessage
   ): Promise<string | null | undefined> {
     try {
+      {
+        const _url = validateUrl(value);
+        if (_url) return url(value, context);
+      }
       // check the message's attachments/stickers first
       {
         const url = findImageUrlInMessages([context]);
@@ -64,9 +73,9 @@ export module Parameters {
       {
         const mRef = context.messageReference;
         if (mRef && mRef.messageId) {
-          const message = <discord.GuildMemberMessage>(
-            await (await context.getChannel()).getMessage(mRef.messageId)
-          );
+          const message = (await (await context.getChannel()).getMessage(
+            mRef.messageId
+          )) as discord.GuildMemberMessage;
           const url = findImageUrlInMessages([message]);
           if (url) {
             return url;
@@ -106,9 +115,9 @@ export module Parameters {
               if (messageLink.matches.length) {
                 const [{ channelId, messageId }] = messageLink.matches;
                 if (channelId && messageId) {
-                  const message = <discord.GuildMemberMessage>(
-                    await (await context.getChannel()).getMessage(messageId)
-                  );
+                  const message = (await (
+                    await context.getChannel()
+                  ).getMessage(messageId)) as discord.GuildMemberMessage;
 
                   const url = findImageUrlInMessages([message]);
                   if (url) {
@@ -121,7 +130,7 @@ export module Parameters {
         }
 
         // it's in the form of username#discriminator
-        if (value.includes("#") && !value.startsWith("#")) {
+        if (value.includes('#') && !value.startsWith('#')) {
           const found = await Parameters.member(context, value);
           if (found) {
             return found.user.getAvatarUrl();
@@ -131,17 +140,12 @@ export module Parameters {
 
         // it's in the form of <@123>
         {
-          const { matches } = discordRegex(
-            DiscordRegexNames.MENTION_USER,
-            value
-          ) as { matches: Array<{ id: string }> };
-          if (matches.length) {
-            const [{ id: userId }] = matches;
-
-            // pass it onto the next statement
-            if (isSnowflake(userId)) {
-              value = userId;
+          if (/<@!?\d{16,17}>?/.test(value)) {
+            const user = await discord.getUser(value.replace(/\D/g, ''));
+            if (user) {
+              return user.getAvatarUrl();
             }
+            return null;
           }
         }
 
@@ -151,10 +155,10 @@ export module Parameters {
 
           let user: discord.User;
           if (context.mentions.some((v) => v.id === userId)) {
-            user = context.mentions.find((v) => v.id === userId);
-            if (user instanceof discord.GuildMember) user = user.user;
+            const a = context.mentions.find((v) => v.id === userId)!;
+            user = a;
           } else {
-            user = await discord.getUser(userId);
+            user = (await discord.getUser(userId))!;
           }
           return user.getAvatarUrl();
         }
@@ -166,14 +170,14 @@ export module Parameters {
           };
           if (matches.length) {
             const [{ animated, id }] = matches;
-            const format = animated ? "gif" : "png";
+            const format = animated ? 'gif' : 'png';
             return Discord.CDN.URL + Discord.CDN.EMOJI(id, format);
           }
         }
 
         // it's an unicode emoji
         {
-          const emojiTry = findEmoji(value);
+          const emojiTry = emoji(value, context);
           if (emojiTry) return emojiTry.url;
         }
 
@@ -186,6 +190,7 @@ export module Parameters {
         }
       }
     } catch (error) {
+      console.error(error);
       return null;
     }
     return null;
@@ -194,67 +199,75 @@ export module Parameters {
     data: ArrayBuffer;
     url: URL;
     attachment: discord.Message.IMessageAttachment;
+    // message: discord.Message;
+    // identifier: string;
   }
   export async function image(
     value: string,
     context: discord.GuildMemberMessage,
-    filename: string = "file.png"
+    filename: string = 'file.png'
   ): Promise<Image> {
     const data = await (
-      await fetch(await imageUrl(value, context))
+      await fetch((await imageUrl(value, context))!)
     ).arrayBuffer();
-    const url = new URL(await imageUrl(value, context));
+    const url = new URL((await imageUrl(value, context))!);
+    const att = await inOutAttachment({ name: filename, data });
     return {
       data,
       url,
-      attachment: await inOutAttachment({ name: filename, data }),
+      attachment: att.attachment
+      // message: att.msg,
+      // identifier: att.rand
     };
   }
 
   const foundUserSemantics = [
     {
-      names: ["self", "me", "this"],
-      value: async (context: discord.GuildMemberMessage) => context.member.user,
+      names: ['self', 'me', 'this'],
+      value: async (context: discord.GuildMemberMessage) => context.member.user
     },
     {
-      names: ["bot", "client"],
-      value: async (_: discord.GuildMemberMessage) => discord.getBotUser(),
-    },
+      names: ['bot', 'client'],
+      value: async (_: discord.GuildMemberMessage) => discord.getBotUser()
+    }
   ];
   const foundMemberSemantics = [
     {
-      names: ["self", "me", "this"],
-      value: async (_: discord.GuildMemberMessage) => _.member,
+      names: ['self', 'me', 'this'],
+      value: async (_: discord.GuildMemberMessage) => _.member
     },
     {
-      names: ["bot", "client"],
+      names: ['bot', 'client'],
       value: async (_: discord.GuildMemberMessage) =>
-        await (await _.getGuild()).getMember(discord.getBotId()),
-    },
+        await (await _.getGuild()).getMember(discord.getBotId())
+    }
   ];
   export async function user(
     context: discord.GuildMemberMessage,
     query?: string
-  ): Promise<discord.User> {
+  ): Promise<discord.User | undefined> {
     if (!query) return context.member.user;
     query = query.toLowerCase();
-    if (foundUserSemantics.some((v) => v.names.includes(query)))
+    if (foundUserSemantics.some((v) => v.names.includes(query!)))
       return await foundUserSemantics
-        .find((v) => v.names.includes(query))
+        .find((v) => v.names.includes(query!))!
         .value(context);
     const guild = await discord.getGuild();
     const members = await asyncIteratorToArray(guild.iterMembers());
     const foundMember = members.find(
       (v) =>
-        v.user.id === query.replace(/\D/g, "") ||
+        v.user.id === query!.replace(/\D/g, '') ||
         (v.nick && v.nick.toLowerCase() === query) ||
-        v.user.username === query ||
-        v.user.getTag() === query
+        v.user.username.toLowerCase() === query ||
+        v.user.getTag().toLowerCase() === query
     );
-    const foundUser = foundMember
-      ? foundMember.user
-      : await discord.getUser(query);
-    if (!foundUser) throw new Error(`Cannot find user '${query}'`);
+    let foundUser = undefined;
+    try {
+      foundUser = foundMember
+        ? foundMember.user
+        : (await discord.getUser(query))!;
+    } catch {}
+    return foundUser;
   }
   export async function member(
     context: discord.GuildMemberMessage,
@@ -262,20 +275,100 @@ export module Parameters {
   ): Promise<discord.GuildMember> {
     if (!query) return context.member;
     query = query.toLowerCase();
-    if (foundUserSemantics.some((v) => v.names.includes(query)))
-      return await foundMemberSemantics
-        .find((v) => v.names.includes(query))
-        .value(context);
+    if (foundUserSemantics.some((v) => v.names.includes(query!)))
+      return (await foundMemberSemantics!
+        .find((v) => v.names.includes(query!))!
+        .value(context))!;
     const guild = await discord.getGuild();
     const members = await asyncIteratorToArray(guild.iterMembers());
     const foundMember = members.find(
       (v) =>
-        v.user.id === query.replace(/\D/g, "") ||
+        v.user.id === query!.replace(/\D/g, '') ||
         (v.nick && v.nick.toLowerCase() === query) ||
-        v.user.username === query ||
-        v.user.getTag() === query
+        v.user.username.toLowerCase() === query ||
+        v.user.getTag().toLowerCase() === query
     );
     if (!foundMember) throw new Error(`Cannot find member '${query}'`);
     return foundMember;
+  }
+  const RGB_COLOR_REGEX = /^\(?(?:([0-9]{1,2}|1[0-9]{1,2}|2[0-4][0-9]|25[0-5]), ?)(?:([0-9]{1,2}|1[0-9]{1,2}|2[0-4][0-9]|25[0-5]), ?)(?:([0-9]{1,2}|1[0-9]{1,2}|2[0-4][0-9]|25[0-5]))\)?$/i;
+  const HEX_COLOR_REGEX = /^#?[0-9A-F]{1,6}$/i;
+  const DECIMAL_COLOR_REGEX = /^d\d+$/i;
+  const RANDOM_COLOR_REGEX = /^random$/i;
+  export function color(value: string, context: discord.GuildMemberMessage) {
+    let color;
+    if (RANDOM_COLOR_REGEX.test(value))
+      color = Math.floor(Math.random() * 16777215);
+    if (value.toLowerCase().trim() in colorStrings)
+      color = hexToInt(colorStrings[value.toLowerCase().trim()]);
+    else if (DECIMAL_COLOR_REGEX.test(value))
+      color = parseInt(value.replace(/d/gi, ''), 10);
+    else if (HEX_COLOR_REGEX.test(value)) {
+      console.log(value);
+      color = hexToInt(value);
+    } else if (RGB_COLOR_REGEX.test(value)) {
+      console.log(value);
+      const [r, g, b] = (value.match(/\d+/g) ?? []).map(Number);
+      color = rgbToInt(r, g, b);
+    }
+    return color;
+  }
+  export function url(
+    value: string,
+    context: discord.GuildMemberMessage
+  ): string | undefined {
+    if (value) {
+      if (!/^https?:\/\//.test(value)) {
+        return `http://${value}`;
+      }
+      if (!validateUrl(value)) {
+        return;
+      }
+    }
+    return value;
+  }
+  export function booleanFlagsChoices(array: string[], prefix: string) {
+    // O(2^n)
+    const results: Array<Array<string>> = [[]];
+    for (const value of array) {
+      const copy = [...results];
+      for (const prefix of copy) {
+        results.push(prefix.concat(value));
+      }
+    }
+    return results.map((v) => v.map((v) => prefix + v).join(' '));
+  }
+  export interface EmojiResponse {
+    url: string;
+    type: 'twemoji' | 'custom';
+    id: string;
+  }
+  export function emoji(
+    value: string,
+    context: discord.GuildMemberMessage
+  ): EmojiResponse | undefined {
+    value = value.toLowerCase();
+    if (![Regex.EMOJI, Regex.UNICODE_EMOJI].some((v) => v.test(value)))
+      return undefined;
+    var url: string,
+      type: 'twemoji' | 'custom',
+      id: string = '';
+    if (!value!.replace(/\D/g, '')) {
+      const hex = value!.codePointAt(0)!.toString(16);
+      const result = '0000'.substring(0, 4 - hex.length) + hex;
+      url = `https://cdn.notsobot.com/twemoji/512x512/${result}.png`;
+      type = 'twemoji';
+    } else {
+      url = `https://cdn.discordapp.com/emojis/${value?.replace(/\D/g, '')}.${
+        value?.startsWith('<a:') ? 'gif' : 'png'
+      }`;
+      type = 'custom';
+      id = value?.replace(/\D/g, '');
+    }
+    return {
+      url,
+      type,
+      id
+    };
   }
 }

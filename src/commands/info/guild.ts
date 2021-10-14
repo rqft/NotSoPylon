@@ -1,34 +1,35 @@
-import { Discord } from "../../endpoints";
-import { codeblock, spoiler } from "../../functions/markup";
+import { Discord } from '../../endpoints';
+import { codeblock, spoiler } from '../../functions/markup';
 import {
   Colors,
   commands,
   DateOptions,
   DEFAULT_MAX_MEMBERS,
   GuildExplicitContentFilterTypeTexts,
-  VerificationLevelTexts,
-} from "../../globals";
+  VerificationLevelTexts
+} from '../../globals';
 import {
   editOrReply,
   expandStructure,
   formatMemory,
   guildIdToShardId,
-  toTitleCase,
-} from "../../tools";
+  toTitleCase
+} from '../../tools';
 import {
   asyncIteratorToArray,
   getAcronym,
+  getLongAgoFormat,
   getMaxEmojis,
   guildHasPublic,
   guildJumplink,
-  preferredLocaleText,
-} from "../../util";
+  preferredLocaleText
+} from '../../util';
 
 commands.on(
   {
-    name: "guild",
-    aliases: ["guildinfo", "server", "serverinfo"],
-    description: "Get information for a guild, defaults to the current guild",
+    name: 'guild',
+    aliases: ['guildinfo', 'server', 'serverinfo'],
+    description: 'Get information for a guild, defaults to the current guild'
   },
   (args) => ({}),
   async (message, args) => {
@@ -37,17 +38,19 @@ commands.on(
     const emojis = await guild.getEmojis();
     const {
       memberCount,
-      ownerId,
+      ownerId
       // presenceCount
     } = guild;
-    const voiceStateCount = asyncIteratorToArray(guild.iterVoiceStates());
+    const voiceStateCount = (
+      await asyncIteratorToArray(guild.iterVoiceStates())
+    ).length;
     const owner = (await guild.getMember(ownerId))!;
 
     const embed = new discord.Embed();
     embed.setAuthor({
       name: guild.name,
       iconUrl: guild.getIconUrl() || undefined,
-      url: guildJumplink(guild.id),
+      url: guildJumplink(guild.id)
     });
     embed.setColor(Colors.BLURPLE);
 
@@ -58,14 +61,14 @@ commands.on(
       embed.setDescription(guild.description);
     }
     if (guild.banner) {
-      embed.setThumbnail({ url: guild.getBannerUrl() });
+      embed.setThumbnail({ url: guild.getBannerUrl()! });
     } else {
       if (guild.icon) {
-        embed.setThumbnail({ url: guild.getIconUrl() });
+        embed.setThumbnail({ url: guild.getIconUrl()! });
       }
     }
     if (guild.splash) {
-      embed.setImage({ url: guild.getSplashUrl() });
+      embed.setImage({ url: guild.getSplashUrl()! });
     }
     {
       const description: Array<string> = [];
@@ -73,7 +76,9 @@ commands.on(
       description.push(`**Acronym**: ${getAcronym(guild.name)}`);
       {
         const timestamp = expandStructure(guild);
-        description.push(`**Created**: ${timestamp.age()}`);
+        description.push(
+          `**Created**: ${getLongAgoFormat(timestamp.createdAtUnix, 2)}`
+        );
         description.push(
           `**->** ${spoiler(
             timestamp.createdAt.toLocaleString(undefined, DateOptions)
@@ -81,12 +86,14 @@ commands.on(
         );
       }
       description.push(`**Id**: \`${guild.id}\``);
-      description.push(
-        `**Locale**: \`${preferredLocaleText(guild) || guild.preferredLocale}\``
-      );
+      if (guild.preferredLocale)
+        description.push(
+          `**Locale**: \`${preferredLocaleText(guild) ||
+            guild.preferredLocale}\``
+        );
       description.push(
         `**Nitro Tier**: ${
-          guild.premiumTier ? `Level ${guild.premiumTier}` : "None"
+          guild.premiumTier ? `Level ${guild.premiumTier}` : 'None'
         }`
       );
       if (guild.id === message.guildId) {
@@ -97,19 +104,19 @@ commands.on(
       }
       description.push(`**Region**: \`${guild.region}\``);
       description.push(
-        `**Server Type**: ${guildHasPublic(guild) ? "Public" : "Private"}`
+        `**Server Type**: ${guildHasPublic(guild) ? 'Public' : 'Private'}`
       );
 
-      description.push(`**Shard Id**: \`${guildIdToShardId(guild.id)}\``);
+      //   description.push(`**Shard Id**: \`${guildIdToShardId(guild.id)}\``);
       // Application Id
       // large
       // lazy
       // system channel flags
 
       embed.addField({
-        name: "Information",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Information',
+        value: description.join('\n'),
+        inline: true
       });
     }
     {
@@ -117,27 +124,25 @@ commands.on(
 
       description.push(`**AFK Timeout**: ${guild.afkTimeout} seconds`);
       description.push(
-        `**Content Filter**: ${
-          GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] ||
-          "Unknown"
-        }`
+        `**Content Filter**: ${GuildExplicitContentFilterTypeTexts[
+          guild.explicitContentFilter
+        ] || 'Unknown'}`
       );
       description.push(
         `**Message Notifs**: ${
-          guild.defaultMessageNotifications ? "Mentions" : "All"
+          guild.defaultMessageNotifications ? 'Mentions' : 'All'
         }`
       );
-      description.push(`**MFA**: ${guild.mfaLevel ? "Required" : "Optional"}`);
+      description.push(`**MFA**: ${guild.mfaLevel ? 'Required' : 'Optional'}`);
       description.push(
-        `**Verification**: ${
-          VerificationLevelTexts[guild.verificationLevel] || "Unknown"
-        }`
+        `**Verification**: ${VerificationLevelTexts[guild.verificationLevel] ||
+          'Unknown'}`
       );
 
       embed.addField({
-        name: "Moderation",
-        value: description.join("\n"),
-        inline: true,
+        name: 'Moderation',
+        value: description.join('\n'),
+        inline: true
       });
     }
     {
@@ -146,9 +151,7 @@ commands.on(
           message.guildId !== guild.id &&
           channels.some((v) => v.id === channelId)
         ) {
-          const channel = <discord.Channel>(
-            channels.find((v) => v.id === channelId)
-          );
+          const channel = channels.find((v) => v.id === channelId)!;
           return `${channel} (${channelId})`;
         }
         return `<#${channelId}>`;
@@ -185,9 +188,9 @@ commands.on(
       }
       if (description.length) {
         embed.addField({
-          name: "Channels",
-          value: description.join("\n"),
-          inline: false,
+          name: 'Channels',
+          value: description.join('\n'),
+          inline: false
         });
       }
     }
@@ -237,9 +240,9 @@ commands.on(
         );
 
         embed.addField({
-          name: "Counts",
-          value: codeblock(column.join("\n"), { language: "css" }),
-          inline: true,
+          name: 'Counts',
+          value: codeblock(column.join('\n'), { language: 'css' }),
+          inline: true
         });
       }
 
@@ -270,13 +273,13 @@ commands.on(
         column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
 
         embed.addField({
-          name: "Counts",
-          value: codeblock(column.join("\n"), { language: "css" }),
-          inline: true,
+          name: 'Counts',
+          value: codeblock(column.join('\n'), { language: 'css' }),
+          inline: true
         });
       }
     }
-    embed.addField({ name: "\u200b", value: "\u200b" });
+    embed.addField({ name: '\u200b', value: '\u200b' });
     {
       const description: Array<string> = [];
 
@@ -291,9 +294,9 @@ commands.on(
       description.push(`Presences: ${guild.maxPresences.toLocaleString()}`);
 
       embed.addField({
-        name: "Limits",
-        value: codeblock(description.join("\n"), { language: "css" }),
-        inline: true,
+        name: 'Limits',
+        value: codeblock(description.join('\n'), { language: 'css' }),
+        inline: true
       });
     }
     if (guild.features.length) {
@@ -301,9 +304,9 @@ commands.on(
         .sort()
         .map((feature: string) => toTitleCase(feature));
       embed.addField({
-        name: "Features",
-        value: codeblock(description.join("\n")),
-        inline: true,
+        name: 'Features',
+        value: codeblock(description.join('\n')),
+        inline: true
       });
     }
     {
@@ -331,7 +334,7 @@ commands.on(
         // description.push(`[**Widget Image**](${guild.widgetImageUrl})`);
       }
 
-      embed.addField({ name: "Urls", value: description.join(", ") });
+      embed.addField({ name: 'Urls', value: description.join(', ') });
     }
     return editOrReply(message, { embed });
   }

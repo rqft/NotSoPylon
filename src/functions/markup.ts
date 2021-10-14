@@ -1,41 +1,41 @@
 export const Strings = Object.freeze({
-  BOLD: "**",
-  CODEBLOCK: "```",
-  CODESTRING: "`",
-  CODESTRING_DOUBLE: "``",
-  ESCAPE: "\\",
-  ITALICS: "_",
-  SPOILER: "||",
-  STRIKE: "~~",
-  UNDERLINE: "__",
+  BOLD: '**',
+  CODEBLOCK: '```',
+  CODESTRING: '`',
+  CODESTRING_DOUBLE: '``',
+  ESCAPE: '\\',
+  ITALICS: '_',
+  SPOILER: '||',
+  STRIKE: '~~',
+  UNDERLINE: '__'
 });
 
 export const Regexes = Object.freeze({
   [Strings.BOLD]: /\*\*/g,
-  [Strings.CODEBLOCK]: new RegExp(Strings.CODEBLOCK, "g"),
-  [Strings.CODESTRING]: new RegExp(Strings.CODESTRING, "g"),
+  [Strings.CODEBLOCK]: new RegExp(Strings.CODEBLOCK, 'g'),
+  [Strings.CODESTRING]: new RegExp(Strings.CODESTRING, 'g'),
   [Strings.ESCAPE]: /\\/g,
   [Strings.ITALICS]: /(_|\*)/g,
   [Strings.SPOILER]: /\|\|/g,
-  [Strings.STRIKE]: new RegExp(Strings.STRIKE, "g"),
-  [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, "g"),
+  [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
+  [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
   LINK: /\]\(/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
   MENTION_HARDCORE: /@/g,
-  URL: /\)/g,
+  URL: /\)/g
 });
 
 export const Replacements = Object.freeze({
-  [Strings.BOLD]: "\\*\\*",
-  [Strings.CODEBLOCK]: "``\u200b`",
-  [Strings.CODESTRING]: "\\`",
-  [Strings.ESCAPE]: "\\\\",
-  [Strings.ITALICS]: "\\$1",
-  [Strings.SPOILER]: "\\|\\|",
-  [Strings.STRIKE]: "\\~\\~",
-  [Strings.UNDERLINE]: "\\_\\_",
-  MENTION: "\u200b",
+  [Strings.BOLD]: '\\*\\*',
+  [Strings.CODEBLOCK]: '``\u200b`',
+  [Strings.CODESTRING]: '\\`',
+  [Strings.ESCAPE]: '\\\\',
+  [Strings.ITALICS]: '\\$1',
+  [Strings.SPOILER]: '\\|\\|',
+  [Strings.STRIKE]: '\\~\\~',
+  [Strings.UNDERLINE]: '\\_\\_',
+  MENTION: '\u200b'
 });
 
 export interface MarkupFilter {
@@ -58,14 +58,14 @@ const defaultMarkupFilter: MarkupFilter = Object.freeze({
   limit: 2000,
   links: true,
   mentions: true,
-  mentionEscapeCharacter: "\u200b",
-  replacement: "",
+  mentionEscapeCharacter: '\u200b',
+  replacement: ''
 });
 
 const defaultBoldFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1996,
-    replacement: Replacements[Strings.BOLD],
+    replacement: Replacements[Strings.BOLD]
   })
 );
 
@@ -84,9 +84,9 @@ export interface CodeblockFilterOptions extends MarkupFilterOptions {
 
 const defaultCodeblockFilter: CodeblockFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
-    language: "",
+    language: '',
     limit: 1990,
-    replacement: Replacements[Strings.CODEBLOCK],
+    replacement: Replacements[Strings.CODEBLOCK]
   })
 );
 
@@ -98,14 +98,14 @@ export function codeblock(
   return [
     Strings.CODEBLOCK + (options.language || defaultCodeblockFilter.language),
     text,
-    Strings.CODEBLOCK,
-  ].join("\n");
+    Strings.CODEBLOCK
+  ].join('\n');
 }
 
 const defaultCodestringFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1998,
-    replacement: Replacements[Strings.CODESTRING],
+    replacement: Replacements[Strings.CODESTRING]
   })
 );
 
@@ -118,7 +118,7 @@ export function codestring(
     options = Object.assign(
       {
         limit: 1995,
-        replacement: Strings.CODESTRING + Replacements.MENTION,
+        replacement: Strings.CODESTRING + Replacements.MENTION
       },
       options
     );
@@ -136,7 +136,7 @@ export function codestring(
 const defaultItalicsFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1998,
-    replacement: Replacements[Strings.ITALICS],
+    replacement: Replacements[Strings.ITALICS]
   })
 );
 
@@ -151,7 +151,7 @@ export function italics(
 const defaultSpoilerFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1996,
-    replacement: Replacements[Strings.SPOILER],
+    replacement: Replacements[Strings.SPOILER]
   })
 );
 
@@ -166,7 +166,7 @@ export function spoiler(
 const defaultStrikeFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1996,
-    replacement: Replacements[Strings.STRIKE],
+    replacement: Replacements[Strings.STRIKE]
   })
 );
 
@@ -181,7 +181,7 @@ export function strike(
 const defaultUnderlineFilter: MarkupFilter = Object.freeze(
   Object.assign({}, defaultMarkupFilter, {
     limit: 1996,
-    replacement: Replacements[Strings.UNDERLINE],
+    replacement: Replacements[Strings.UNDERLINE]
   })
 );
 
@@ -203,12 +203,14 @@ export function url(text: string, url: string, comment?: string): string {
 
 export function trueSlice(text: string, limit?: number): string {
   if (limit) {
-    return Buffer.from(text).slice(0, limit).toString();
+    return new TextDecoder().decode(
+      new TextEncoder().encode(text).slice(0, limit)
+    );
   }
   return text;
 }
 
-export const escape = Object.freeze({
+export const escape = {
   all: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign(
       {},
@@ -347,8 +349,8 @@ export const escape = Object.freeze({
   },
   url: (text: string, options: MarkupFilterOptions = {}): string => {
     text = text.replace(Regexes.URL, (match: string) => {
-      return "%" + match.charCodeAt(0).toString(16);
+      return '%' + match.charCodeAt(0).toString(16);
     });
     return text;
-  },
-});
+  }
+};

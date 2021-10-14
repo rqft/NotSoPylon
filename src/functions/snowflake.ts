@@ -5,25 +5,25 @@ const bits = Object.freeze({
   timestamp: 42n,
   workerId: 5n,
   processId: 5n,
-  sequence: 12n,
+  sequence: 12n
 });
 
 const shift = Object.freeze({
   timestamp: bits.processId + bits.workerId + bits.sequence,
   workerId: bits.workerId + bits.sequence,
   processId: bits.sequence,
-  sequence: 0n,
+  sequence: 0n
 });
 
 const max = Object.freeze({
   timestamp: 0x40000000000n,
   processId: -1n ^ (-1n << bits.processId),
   sequence: -1n ^ (-1n << bits.sequence),
-  workerId: -1n ^ (-1n << bits.workerId),
+  workerId: -1n ^ (-1n << bits.workerId)
 });
 
 const cache = {
-  sequence: 0n,
+  sequence: 0n
 };
 
 export interface Snowflake {
@@ -48,7 +48,7 @@ export function generate(options: SnowflakeGenerateOptions = {}): Snowflake {
       epoch: DISCORD_SNOWFLAKE_EPOCH,
       processId: 0,
       timestamp: Date.now(),
-      workerId: 0,
+      workerId: 0
     },
     options
   );
@@ -67,11 +67,11 @@ export function generate(options: SnowflakeGenerateOptions = {}): Snowflake {
   }
 
   const snowflake: Snowflake = {
-    id: "",
+    id: '',
     processId: Number(processId),
     sequence: Number(sequence),
     timestamp: Number(timestamp),
-    workerId: Number(workerId),
+    workerId: Number(workerId)
   };
 
   snowflake.id = String(
@@ -94,7 +94,7 @@ export function deconstruct(
 ): Snowflake {
   options = Object.assign(
     {
-      epoch: DISCORD_SNOWFLAKE_EPOCH,
+      epoch: DISCORD_SNOWFLAKE_EPOCH
     },
     options
   );
@@ -106,7 +106,7 @@ export function deconstruct(
     processId: Number((snowflake & 0x1f000n) >> shift.processId),
     sequence: Number(snowflake & 0xfffn),
     timestamp: Number((snowflake >> shift.timestamp) + epoch),
-    workerId: Number((snowflake & 0x3e0000n) >> shift.workerId),
+    workerId: Number((snowflake & 0x3e0000n) >> shift.workerId)
   };
 }
 
@@ -116,7 +116,7 @@ export function timestamp(
 ): number {
   options = Object.assign(
     {
-      epoch: DISCORD_SNOWFLAKE_EPOCH,
+      epoch: DISCORD_SNOWFLAKE_EPOCH
     },
     options
   );

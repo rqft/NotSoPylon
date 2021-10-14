@@ -1,20 +1,20 @@
-import * as Timers from "./timers"
+import * as Timers from './timers';
 
-import { emojiIdentifier } from "../util";
+import { emojiIdentifier } from '../util';
 
-import { editOrReply } from "../tools";
+import { editOrReply } from '../tools';
 
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
 export const MIN_PAGE = 1;
 
 export const PageEmojis = Object.freeze({
-  custom: "🔢",
-  info: "ℹ",
-  next: "➡",
-  nextDouble: "⏭",
-  previous: "⬅",
-  previousDouble: "⏮",
-  stop: "⏹",
+  custom: '🔢',
+  info: 'ℹ',
+  next: '➡',
+  nextDouble: '⏭',
+  previous: '⬅',
+  previousDouble: '⏮',
+  stop: '⏹'
 });
 
 export type OnErrorCallback = (
@@ -62,7 +62,7 @@ export class Paginator {
     userId?: null | string;
   } = {
     expire: 10000,
-    timeout: new Timers.Timeout(),
+    timeout: new Timers.Timeout()
   };
   readonly timeout = new Timers.Timeout();
 
@@ -110,7 +110,7 @@ export class Paginator {
 
     if (Array.isArray(options.targets)) {
       for (let target of options.targets) {
-        if (typeof target === "string") {
+        if (typeof target === 'string') {
           this.targets.push(target);
         } else {
           this.targets.push(
@@ -125,7 +125,7 @@ export class Paginator {
     }
 
     if (!this.targets.length) {
-      throw new Error("A userId must be specified in the targets array");
+      throw new Error('A userId must be specified in the targets array');
     }
 
     const emojis: PaginatorEmojis = Object.assign(
@@ -133,11 +133,6 @@ export class Paginator {
       PageEmojis,
       options.emojis
     );
-    for (let key in PageEmojis) {
-      if (!(this.emojis[key] instanceof discord.Emoji)) {
-        throw new Error(`Emoji for ${key} must be a string or Emoji structure`);
-      }
-    }
 
     this.onError = options.onError;
     this.onExpire = options.onExpire;
@@ -153,7 +148,7 @@ export class Paginator {
       onError: { enumerable: false },
       onExpire: { enumerable: false },
       onPage: { enumerable: false },
-      onPageNumber: { enumerable: false },
+      onPageNumber: { enumerable: false }
     });
   }
 
@@ -162,9 +157,9 @@ export class Paginator {
   }
 
   addPage(embed: discord.Embed): Paginator {
-    if (typeof this.onPage === "function") {
+    if (typeof this.onPage === 'function') {
       throw new Error(
-        "Cannot add a page when onPage is attached to the paginator"
+        'Cannot add a page when onPage is attached to the paginator'
       );
     }
     if (!Array.isArray(this.pages)) {
@@ -178,34 +173,29 @@ export class Paginator {
   async clearCustomMessage(): Promise<void> {
     this.custom.timeout.stop();
     if (this.custom.message) {
-      if (!this.custom.message) {
-        try {
-          await this.custom.message.delete();
-        } catch (error) {}
-      }
       this.custom.message = null;
     }
   }
 
   async getGuidePage(): Promise<discord.Embed> {
     const embed = new discord.Embed();
-    embed.setTitle("Interactive Paginator Guide");
+    embed.setTitle('Interactive Paginator Guide');
     embed.setDescription(
       [
-        "This allows you to navigate through pages of text using reactions.\n",
+        'This allows you to navigate through pages of text using reactions.\n',
         `${this.emojis.previous} - Goes back one page`,
         `${this.emojis.next} - Goes forward one page`,
         `${this.emojis.custom} - Allows you to choose a number via text`,
         `${this.emojis.stop} - Stops the paginator`,
-        `${this.emojis.info} - Shows this guide`,
-      ].join("\n")
+        `${this.emojis.info} - Shows this guide`
+      ].join('\n')
     );
     embed.setFooter({ text: `We were on page ${this.page.toLocaleString()}.` });
     return embed;
   }
 
   async getPage(page: number): Promise<discord.Embed> {
-    if (typeof this.onPage === "function") {
+    if (typeof this.onPage === 'function') {
       return await Promise.resolve(this.onPage(this.page));
     }
     if (Array.isArray(this.pages)) {
@@ -229,7 +219,7 @@ export class Paginator {
   async onMessageReactionAdd({
     messageId,
     reaction,
-    userId,
+    userId
   }: {
     messageId: string;
     reaction: discord.Message.IMessageReaction;
@@ -298,7 +288,7 @@ export class Paginator {
             if (!this.custom.message) {
               await this.clearCustomMessage();
               this.custom.message = await this.message.reply(
-                "What page would you like to go to?"
+                'What page would you like to go to?'
               );
               this.custom.timeout.start(this.custom.expire, async () => {
                 await this.clearCustomMessage();
@@ -317,7 +307,7 @@ export class Paginator {
               this.isOnGuide = true;
               const embed = await this.getGuidePage();
               await this.message.edit({
-                embed,
+                embed
               });
             }
           }
@@ -335,7 +325,7 @@ export class Paginator {
       }
       */
     } catch (error) {
-      if (typeof this.onError === "function") {
+      if (typeof this.onError === 'function') {
         await Promise.resolve(this.onError(error, this));
       }
     }
@@ -347,15 +337,15 @@ export class Paginator {
       this.stopped = true;
       try {
         if (error) {
-          if (typeof this.onError === "function") {
+          if (typeof this.onError === 'function') {
             await Promise.resolve(this.onError(error, this));
           }
         }
-        if (typeof this.onExpire === "function") {
+        if (typeof this.onExpire === 'function') {
           await Promise.resolve(this.onExpire(this));
         }
       } catch (error) {
-        if (typeof this.onError === "function") {
+        if (typeof this.onError === 'function') {
           await Promise.resolve(this.onError(error, this));
         }
       }
@@ -363,7 +353,7 @@ export class Paginator {
         if (
           this.message &&
           !this.message.id &&
-          (await (await discord.getGuild()).getMember(discord.getBotId())).can(
+          (await (await discord.getGuild()).getMember(discord.getBotId()))!.can(
             discord.Permissions.MANAGE_MESSAGES
           )
         ) {
@@ -389,11 +379,11 @@ export class Paginator {
 
   async start() {
     if (
-      typeof this.onPage !== "function" &&
+      typeof this.onPage !== 'function' &&
       !(this.pages && this.pages.length)
     ) {
       throw new Error(
-        "Paginator needs an onPage function or at least one page added to it"
+        'Paginator needs an onPage function or at least one page added to it'
       );
     }
 
@@ -402,11 +392,11 @@ export class Paginator {
       message = this.message;
     } else {
       if (
-        !(await (await discord.getGuild()).getMember(discord.getBotId())).can(
+        !(await (await discord.getGuild()).getMember(discord.getBotId()))!.can(
           discord.Permissions.SEND_MESSAGES
         )
       ) {
-        throw new Error("Cannot create messages in this channel");
+        throw new Error('Cannot create messages in this channel');
       }
       const embed = await this.getPage(this.page);
       if (this.context instanceof discord.Message) {
@@ -418,47 +408,43 @@ export class Paginator {
     if (
       !this.stopped &&
       this.pageLimit !== MIN_PAGE &&
-      !(await (await discord.getGuild()).getMember(discord.getBotId())).can(
+      !(await (await discord.getGuild()).getMember(discord.getBotId()))!.can(
         discord.Permissions.ADD_REACTIONS
       )
     ) {
-      setImmediate(async () => {
-        try {
-          this.timeout.start(this.expires, this.onStop.bind(this));
-          const emojis = <Array<discord.Emoji>>(
-            [
-              this.isLarge ? this.emojis.previousDouble : null,
-              this.emojis.previous,
-              this.emojis.next,
-              this.isLarge ? this.emojis.nextDouble : null,
-              this.emojis.custom,
-              this.emojis.stop,
-              this.emojis.info,
-            ].filter((v) => v)
-          );
+      try {
+        this.timeout.start(this.expires, this.onStop.bind(this));
+        const emojis = [
+          this.isLarge ? this.emojis.previousDouble : null,
+          this.emojis.previous,
+          this.emojis.next,
+          this.isLarge ? this.emojis.nextDouble : null,
+          this.emojis.custom,
+          this.emojis.stop,
+          this.emojis.info
+        ].filter((v) => v);
 
-          for (let emoji of emojis) {
-            if (this.stopped || !message.id) {
-              break;
-            }
-            if (
-              message.reactions.find(
-                (v) => v.emoji.id === emoji.id || v.emoji.name === emoji.name
-              ) !== undefined
-            ) {
-              continue;
-            }
-            await message.addReaction(emojiIdentifier(emoji));
+        for (let emoji of emojis) {
+          if (this.stopped || !message!.id) {
+            break;
           }
-        } catch (error) {
-          if (typeof this.onError === "function") {
-            this.onError(error, this);
+          if (
+            message!.reactions.find(
+              (v) => v.emoji.id === emoji!.id || v.emoji.name === emoji!.name
+            ) !== undefined
+          ) {
+            continue;
           }
+          await message!.addReaction(emojiIdentifier(emoji!));
         }
-      });
+      } catch (error) {
+        if (typeof this.onError === 'function') {
+          this.onError(error, this);
+        }
+      }
     }
 
-    return message;
+    return message!;
   }
 
   stop(clearEmojis: boolean = true) {

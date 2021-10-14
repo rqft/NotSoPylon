@@ -1,9 +1,8 @@
-import "./activity";
-import "./avatar";
-import "./channel";
-import "./guild";
-import "./guildicon";
-import "./inviteinfo";
-import "./playing";
-import "./role";
-import "./user";
+import './activity';
+import './avatar';
+import './channel';
+import './guild';
+import './guildicon';
+import './inviteinfo';
+import './role';
+import './user';
