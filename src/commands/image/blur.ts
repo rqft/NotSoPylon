@@ -1,16 +1,15 @@
-import { commands, EmbedBrands, EmbedColors } from '../../globals';
-import { editOrReply, formatMemory } from '../../tools';
-import { Parameters } from '../../parameters';
-import { createImageEmbed, getFileExtension, toUrlParams } from '../../util';
-import { PxlAPI } from '../../other_apis';
-import config from '../../config';
+import config from "../../config";
+import { commands } from "../../globals";
+import { Parameters } from "../../parameters";
+import { editOrReply } from "../../tools";
+import { createImageEmbed, toUrlParams } from "../../util";
 commands.on(
   {
-    name: 'blur',
-    description: 'Blur an image'
+    name: "blur",
+    description: "Blur an image",
   },
   (args) => ({
-    url: args.string()
+    url: args.string(),
   }),
   async (context, args) => {
     const imageUrl = await Parameters.imageUrl(args.url, context);
@@ -20,7 +19,7 @@ commands.on(
       await fetch(
         `https://rqft.imgix.net/${encodeURIComponent(imageUrl)}${toUrlParams({
           S: config.keys.imgix,
-          blur: 50
+          blur: 50,
         })}`
       )
     ).arrayBuffer();
