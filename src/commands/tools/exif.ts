@@ -1,35 +1,27 @@
-import { commands, EmbedBrands, EmbedColors } from '../../globals';
-import {
-  editOrReply,
-  formatMemory,
-  getUrlExtension,
-  inOutAttachment,
-  splitArray
-} from '../../tools';
-import { Parameters } from '../../parameters';
-import { createUserEmbed, formatTime, getFileExtension } from '../../util';
-import { codeblock } from '../../functions/markup';
-import { Discord } from '../../endpoints';
+import { commands, EmbedBrands, EmbedColors } from "../../globals";
+import { Parameters } from "../../parameters";
+import { editOrReply, formatMemory } from "../../tools";
+import { createUserEmbed, getFileExtension } from "../../util";
 commands.on(
   {
-    name: 'exif',
-    description: 'Get exif information from an image'
+    name: "exif",
+    description: "Get exif information from an image",
   },
   (args) => ({
-    url: args.string()
+    url: args.string(),
   }),
   async (context, args) => {
     const { attachment, url } = await Parameters.image(
       args.url,
       context,
-      'file.gif'
+      "file.gif"
     );
 
     const embed = createUserEmbed(context.member.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setFooter({
-      text: 'Image Exif Information',
-      iconUrl: EmbedBrands.NOTSOBOT
+      text: "Image Exif Information",
+      iconUrl: EmbedBrands.NOTSOBOT,
     });
 
     embed.setThumbnail({ url: url.href });
@@ -48,13 +40,13 @@ commands.on(
       );
       description.push(`**Size**: ${formatMemory(attachment.size)}`);
       description.push(`**Attachment ID**: \`${attachment.id}\``);
-      embed.setDescription(description.join('\n'));
+      embed.setDescription(description.join("\n"));
     }
 
     {
       embed.addField({
-        name: 'Urls',
-        value: `[**Image**](${attachment.url}), [**Proxy**](${attachment.proxyUrl})`
+        name: "Urls",
+        value: `[**Image**](${attachment.url}), [**Proxy**](${attachment.proxyUrl})`,
       });
     }
 

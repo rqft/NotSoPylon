@@ -1,10 +1,5 @@
 dist/
-dist_public/
 node_modules/
 package-lock.json
-run.bat
-work.code-workspace
 .env
 .npmrc
-cloc-1.86.exe
-typings/
